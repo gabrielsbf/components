@@ -1,16 +1,22 @@
 import requests
 import os
-from srcs.classes.file_handler import Files_Handling
-from utils.get_credentials import *
-from utils.env_p import *
+from cfg_manager.module.config_manager import Read_config
+from configparser import ConfigParser
+from Files_Handler.file_handler import Files_Handling
+
 
 class Trello_Manager(Files_Handling):
-	def __init__(self, boardname):
-		super().__init__(TEST_ALL_FOLDERS)
+	def __init__(self, boardname, cfg_path, boards_path, new_cards_path, list_allowed:list, section='trello'):
+		super().__init__(boards_path)
+		self.boards_path = boards_path
+		self.cred = Read_config(cfg_path, section).cred
 		self.boardname = boardname
-		self.cred = get_cred('trello_api')
 		self.board_obj = self.set_board(self.get_boards())
+		self.lists = list_allowed
+		self.new_cards = new_cards_path
+	
 
+	
 	def make_request(self, endpoint):
 		api_token = self.cred['token']
 		api_key = self.cred['key']
@@ -47,13 +53,13 @@ class Trello_Manager(Files_Handling):
 		return resp[0]['id']
 
 
-	def get_cards_from_lists(self, lists=LISTS_ALLOWED):
-		if lists[0] == "all" and len(lists) == 1:
+	def get_cards_from_lists(self):
+		if self.lists[0] == "all" and len(self.lists) == 1:
 			board_id = self.board_obj['id']
 			req = self.make_request('/boards/' + board_id + '/cards')
 		else :
 			arr_resp = []
-			for i in lists:
+			for i in self.lists:
 				list_id = self.get_listId_byName(i)
 				arr_resp.append(self.make_request('/lists/' + list_id + '/cards'))
 			req = arr_resp[0]
@@ -71,24 +77,24 @@ class Trello_Manager(Files_Handling):
 				diference.append(check)
 		return diference
 
-	def first_exec(self, new_cards, all_cards_new=BEGIN_NEW_CARDS):
+	def first_exec(self, new_cards, all_cards_new= True):
 			print("É a primeira execução do app\ncriando arquivos")
-			self.write_file(self.board_obj, BOARD_NAME + '_boards.json')
-			self.write_file(self.get_lists(), BOARD_NAME + '_lists.json')
-			self.write_file(new_cards, BOARD_NAME + '_cards.json')
+			self.write_file(self.board_obj, self.boardname + '_boards.json')
+			self.write_file(self.get_lists(), self.boardname + '_lists.json')
+			self.write_file(new_cards, self.boardname + '_cards.json')
 			if(all_cards_new == True):
 				list(map(lambda x: x.update({'condition' : "new"}) ,new_cards))
-				self.write_file(new_cards, 'new_cards.json', NEW_CARDS_PATH)
+				self.write_file(new_cards, 'new_cards.json', self.new_cards)
 			else:
-				self.write_file([], 'new_cards.json', NEW_CARDS_PATH)
+				self.write_file([], 'new_cards.json', self.new_cards)
 	
 	def verify_new_cards(self):
 		# print("VERIFICANDO NOVOS CARDS...")
 		new_cards = self.get_cards_from_lists()
 		try:
-			old_cards = self.read_file(BOARD_NAME + '_cards.json')
-			self.read_file(BOARD_NAME + '_boards.json')
-			self.read_file(BOARD_NAME + '_lists.json')
+			old_cards = self.read_file(self.boardname + '_cards.json')
+			self.read_file(self.boardname + '_boards.json')
+			self.read_file(self.boardname + '_lists.json')
 		except:
 			self.first_exec(new_cards)
 			return 1
@@ -99,16 +105,16 @@ class Trello_Manager(Files_Handling):
 			return 0
 		else:
 			print("Cards novos ou cards modificados foram identificados!")
-			self.write_file(self.get_cards_from_lists(), BOARD_NAME + '_tempCards.json')
+			self.write_file(self.get_cards_from_lists(), self.boardname + '_tempCards.json')
 			new_cards_json = self.check_elements(old_cards, new_cards)
 			new_cards_json = list(filter(lambda x: x['condition'] == 'new', new_cards_json))
 			self.write_file(new_cards_json,
 							'new_cards.json',
-							NEW_CARDS_PATH)
+							self.new_cards)
 			if len(new_cards_json) <= 0:
 				print('cards modificados eram apenas updates, finalizando procedimento sem escrever em planilha')
-				self.write_file(self.read_file(BOARD_NAME + '_tempCards.json'), BOARD_NAME + "_cards.json" )
-				os.remove(BOARD_DATA_PATH + BOARD_NAME + '_tempCards.json')
+				self.write_file(self.read_file(self.boardname + '_tempCards.json'), self.boardname + "_cards.json" )
+				os.remove(self.boards_path + self.boardname + '_tempCards.json')
 				return 0
 			else:
 				print('Dados foram armazenados em new_cards.json do board específico!')
