@@ -2,11 +2,28 @@ import os
 import json
 
 class Files_Handling():
+	"""
+    Handles file operations.
+
+    This class provides methods to handle file operations such as writing, reading, and appending data to files.
+    """
 	def __init__(self, pattern_folder):
+		"""
+        Initializes the Files_Handling object.
+
+        Parameters:
+            pattern_folder (str): Pattern folder path.
+        """
 		self.pattern_folder = pattern_folder
 		self.set_folders(self.folder_to_test)
 
 	def set_folders(self, folder_test):
+		"""
+        Sets up folders.
+
+        Parameters:
+            folder_test (bool): Flag to determine if folder setup is needed.
+        """
 		if folder_test == False:
 			return 0
 		if not os.path.exists(folder_test):
@@ -15,6 +32,14 @@ class Files_Handling():
 			print(">>>Processo Concluído")
 
 	def write_file(self, input, filename, pattern_folder=True):
+		"""
+        Writes data to a file.
+
+        Parameters:
+            input (str or dict): Data to write.
+            filename (str): Name of the file.
+            pattern_folder (bool, optional): Flag to indicate if the pattern folder is used (default: True).
+        """
 		if not pattern_folder == True:
 			folder = pattern_folder
 		else:
@@ -30,6 +55,16 @@ class Files_Handling():
 				file.close()
 
 	def read_file(self, filename, pattern_folder=True):
+		"""
+        Reads data from a file.
+
+        Parameters:
+            filename (str): Name of the file.
+            pattern_folder (bool, optional): Flag to indicate if the pattern folder is used (default: True).
+
+        Returns:
+            str or dict: Data read from the file.
+        """
 		if not pattern_folder == True:
 			folder = pattern_folder
 		else:
@@ -42,6 +77,14 @@ class Files_Handling():
 		return data
 
 	def append_file(self, input, filename, pattern_folder=True):
+		"""
+        Appends data to a file.
+
+        Parameters:
+            input (str or dict): Data to append.
+            filename (str): Name of the file.
+            pattern_folder (bool, optional): Flag to indicate if the pattern folder is used (default: True).
+        """
 		if not pattern_folder == True:
 			folder = pattern_folder
 		else:
