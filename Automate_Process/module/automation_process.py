@@ -46,16 +46,16 @@ class Selenium_Manager:
 
 	def access_field(self, type : By, elem, time_to_wait) -> WebElement:
 		"""
-        Access a specific field on the webpage.
+    	Access a specific field on the webpage.
 
-        Parameters:
-            type (By): The type of locator.
-            elem (str): The element to be accessed.
-            time_to_wait (int): Time to wait for the element to be found.
+    	Parameters:
+        	type (By): The type of locator (e.g., By.ID, By.CLASS_NAME).
+        	elem (str): The element to be accessed (e.g., "some_id", "some_class").
+        	time_to_wait (int): Time to wait for the element to be found, in seconds.
 
-        Returns:
-            WebElement: The accessed element.
-        """
+    	Returns:
+        	WebElement: The accessed element.
+    """
 		# print(f"Acessando o elemento: {elem}")
 		self.driver.implicitly_wait(time_to_wait)
 		elem = self.driver.find_element(type, elem)
