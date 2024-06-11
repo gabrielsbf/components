@@ -12,6 +12,14 @@ import re
 class Selenium_Manager:
 
 	def __init__(self, url_post_3w, chrome_data_path, user_agent):
+		"""
+        Initialize Selenium_Manager class.
+
+        Parameters:
+            url_post_3w (str): The URL to be accessed.
+            chrome_data_path (str): The path to Chrome data.
+            user_agent (str): User agent string.
+        """
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
@@ -23,6 +31,12 @@ class Selenium_Manager:
 		self.driver = self.open_driver()
 
 	def open_driver(self):
+		"""
+        Open Chrome WebDriver.
+
+        Returns:
+            WebDriver: Chrome WebDriver.
+        """
 		driver = webdriver.Chrome(options=self.options,
 									   service=self.s)
 		return driver
@@ -31,13 +45,32 @@ class Selenium_Manager:
 		print(f"a url {self.url} foi acessada!")
 
 	def access_field(self, type : By, elem, time_to_wait) -> WebElement:
+		"""
+    	Access a specific field on the webpage.
+
+    	Parameters:
+        	type (By): The type of locator (e.g., By.ID, By.CLASS_NAME).
+        	elem (str): The element to be accessed (e.g., "some_id", "some_class").
+        	time_to_wait (int): Time to wait for the element to be found, in seconds.
+
+    	Returns:
+        	WebElement: The accessed element.
+    """
 		# print(f"Acessando o elemento: {elem}")
 		self.driver.implicitly_wait(time_to_wait)
 		elem = self.driver.find_element(type, elem)
 		return elem
 
 	def do_action(self, target, action, message=None, press_return=False):
+		"""
+        Perform an action on a target WebElement.
 
+        Parameters:
+            target (WebElement): The target element to perform action on.
+            action (str): The action to perform ('click' or 'send_keys').
+            message (str): The message to send (for 'send_keys' action).
+            press_return (bool): Whether to press return key after sending keys.
+        """
 		if action == "click":
 			target.click()
 		elif action == "send_keys":
@@ -46,6 +79,13 @@ class Selenium_Manager:
 				target.send_keys(Keys.RETURN)
 
 	def do_presskeys(self, first_key, second_key):
+		"""
+        Perform key press action.
+
+        Parameters:
+            first_key (str): The first key to press.
+            second_key (str): The second key to press.
+        """
 		action = ActionChains(self.driver)
 		action.key_down(first_key).send_keys(second_key).key_up(first_key).perform()
 
@@ -69,6 +109,16 @@ class Automate_Process(Selenium_Manager):
 		return soup
 	
 	def handle_texts(self, splited_text: list, text_object: dict) -> dict:
+		"""
+        Handle text processing.
+
+        Parameters:
+            splited_text (list): List of splitted text.
+            text_object (dict): Dictionary to store processed text.
+
+        Returns:
+            dict: Processed text object.
+        """
 
 		for elem in splited_text:
 			if not re.search(r"http[:s][^ ]|[^ ]+(?:[.]com)|[^ ]+(?:[.]br)|[^ ]+(?:[.]gov)", elem) == None:
@@ -79,6 +129,17 @@ class Automate_Process(Selenium_Manager):
 				text_object["texts"].append(elem)
 	
 	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict)->list:
+		"""
+        Get all elements by filter.
+
+        Parameters:
+            soup (BeautifulSoup): BeautifulSoup object.
+            html_tag (str): HTML tag to filter.
+            attrs (dict): Attributes to filter.
+
+        Returns:
+            list: List of filtered elements.
+        """
 		arr_list = []
 		list_elem = soup.find_all(html_tag, attrs)
 		for father in list_elem:

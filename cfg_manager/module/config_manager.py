@@ -8,6 +8,12 @@ class Read_config:
 		self.cred = self.get_cred()
 	
 	def get_cred(self):
+		"""
+        Get credentials from the configuration file.
+
+        Returns:
+            dict: Dictionary containing credentials.
+        """
 		parser = ConfigParser()
 		parser.read(self.file)
 		tuple_items = parser.items(self.section) if not self.section == False else parser.items()
