@@ -11,7 +11,7 @@ import re
 
 class Selenium_Manager:
 
-	def __init__(self, url_post_3w, chrome_data_path, user_agent):
+	def __init__(self, url_post_3w, chrome_data_path, user_agent, disable_graphics=True):
 		"""
         Initialize Selenium_Manager class.
 
@@ -23,11 +23,12 @@ class Selenium_Manager:
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
-		self.options.add_argument(chrome_data_path)
-		self.options.add_argument('--headless')
-		self.options.add_argument('--disable-gpu')
+		self.options.add_argument(f"--user-data-dir={chrome_data_path}")
+		if disable_graphics == True:
+			self.options.add_argument('--headless')
+			self.options.add_argument('--disable-gpu')
 		self.options.add_argument('log-level=2')
-		self.options.add_argument(user_agent)
+		self.options.add_argument(f"user-agent={user_agent}")
 		self.driver = self.open_driver()
 
 	def open_driver(self):
@@ -90,8 +91,8 @@ class Selenium_Manager:
 		action.key_down(first_key).send_keys(second_key).key_up(first_key).perform()
 
 class Automate_Process(Selenium_Manager):
-	def __init__(self, url_post_3w, chrome_data_path, user_agent):
-		super().__init__(url_post_3w, chrome_data_path, user_agent)
+	def __init__(self, url_post_3w, chrome_data_path, user_agent, disable_graphics=True):
+		super().__init__(url_post_3w, chrome_data_path, user_agent, disable_graphics)
 
 	def webElement_to_html(self, elem: WebElement) -> BeautifulSoup:
 		"""
