@@ -19,7 +19,3 @@ class Read_config:
 		tuple_items = parser.items(self.section) if not self.section == False else parser.items()
 		obj_items = {i[0] : i[1] for i in tuple_items}
 		return obj_items
-
-
-cfg = Read_config('config.ini')
-print(cfg.cred['section_n'])
