@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.remote.webelement import WebElement
 from bs4 import BeautifulSoup
 import re
-from Date_Utils.module.date_time_utils import Date_Utils
+from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Selenium_Manager(Date_Utils):
 
