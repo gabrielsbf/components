@@ -8,8 +8,9 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.remote.webelement import WebElement
 from bs4 import BeautifulSoup
 import re
+from Date_Utils.module.date_time_utils import Date_Utils
 
-class Selenium_Manager:
+class Selenium_Manager(Date_Utils):
 
 	def __init__(self, url_post_3w, chrome_data_path, user_agent):
 		"""
@@ -20,6 +21,7 @@ class Selenium_Manager:
             chrome_data_path (str): The path to Chrome data.
             user_agent (str): User agent string.
         """
+		super().__init__()
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
@@ -123,7 +125,7 @@ class Automate_Process(Selenium_Manager):
 		for elem in splited_text:
 			if not re.search(r"http[:s][^ ]|[^ ]+(?:[.]com)|[^ ]+(?:[.]br)|[^ ]+(?:[.]gov)", elem) == None:
 				text_object["links"].append(elem)
-			elif not(elem.find("PM") == -1 and elem.find("AM") == -1) and (len(elem) >= 6 and len(elem) <= 8):
+			elif self.validate_time(elem) :
 				text_object["date"].append(elem)
 			else:
 				text_object["texts"].append(elem)

@@ -167,3 +167,40 @@ class Date_Utils:
                         "end_month": split_until_month[0] + "-" + split_until_month[1]
                         }
                 return dates
+        
+        def validate_time(self, dt):
+                
+                while True:
+
+                        try:
+                                datetime.datetime.strptime(dt, '%b %d')
+                                print('it works with abv-month and day')
+                                return True
+                        except:
+                                pass
+
+                        try:
+                                datetime.datetime.strptime(dt, '%Ih')
+                                print('it works with 12-hour-clock and Locale (PM or AM)')
+                                return True
+                        except:
+                                pass
+
+                        try:
+                                datetime.datetime.strptime(dt, '%I %p')
+                                print('it works with 12-hour-clock and Locale (PM or AM)')
+                                return True
+                        except:
+                                pass
+
+                        try:
+                                datetime.datetime.strftime(dt, '%Hh')
+                                print('it works with 24-hour-clock')
+                                return True
+                        except:
+                                pass
+                        
+                        break
+
+                return False
+        
