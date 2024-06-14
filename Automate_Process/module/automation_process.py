@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.remote.webelement import WebElement
 from bs4 import BeautifulSoup
 import re
-from Date_Utils.module.date_time_utils import Date_Utils
+from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Selenium_Manager(Date_Utils):
 
@@ -43,6 +43,7 @@ class Selenium_Manager(Date_Utils):
 		driver = webdriver.Chrome(options=self.options,
 									   service=self.s)
 		return driver
+	
 	def access_url(self):
 		self.driver.get(self.url)
 		print(f"a url {self.url} foi acessada!")
@@ -110,8 +111,13 @@ class Automate_Process(Selenium_Manager):
 		value = elem.get_attribute("outerHTML")
 		soup = BeautifulSoup(value, "html.parser")
 		return soup
-	
-	def handle_texts(self, splited_text: list, text_object: dict) -> dict:
+
+	def get_hrefs(self, a_tags, text_object: dict):
+		for a_tag in a_tags:
+			text_object['hrefs'].append(a_tag.get('href'))
+
+
+	def handle_texts(self, splited_text: list, text_object: dict)-> None:
 		"""
         Handle text processing.
 
@@ -119,19 +125,17 @@ class Automate_Process(Selenium_Manager):
             splited_text (list): List of splitted text.
             text_object (dict): Dictionary to store processed text.
 
-        Returns:
-            dict: Processed text object.
         """
 
 		for elem in splited_text:
 			if not re.search(r"http[:s][^ ]|[^ ]+(?:[.]com)|[^ ]+(?:[.]br)|[^ ]+(?:[.]gov)", elem) == None:
-				text_object["links"].append(elem)
+				text_object["text_links"].append(elem)
 			elif self.validate_time(elem) :
 				text_object["date"].append(elem)
 			else:
 				text_object["texts"].append(elem)
 	
-	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict)->list:
+	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None)->list:
 		"""
         Get all elements by filter.
 
@@ -147,9 +151,13 @@ class Automate_Process(Selenium_Manager):
 		list_elem = soup.find_all(html_tag, attrs)
 		for father in list_elem:
 			# minnor_arr = []
-			text_object = {'texts':[],'links':[], 'date':[], 'check': True}
+			text_object = {'texts':[],'text_links':[], 'date':[], 'hrefs': [], 'check': True}
 			i = 0
+
 			for elem in father:
+				self.get_hrefs(elem.find_all('a'), text_object)
+				if not custom_fun == None:
+					text_object['extra'] = custom_fun(elem, html_tag, attrs)
 				if not elem == '\n':
 					try:
 						texts = elem.get_text("|").split("|")
