@@ -155,7 +155,8 @@ class Automate_Process(Selenium_Manager):
 			i = 0
 
 			for elem in father:
-				self.get_hrefs(elem.find_all('a'), text_object)
+				try:self.get_hrefs(elem.find_all('a'), text_object)
+				except:print("element don't have hrefs")
 				if not custom_fun == None:
 					text_object['extra'] = custom_fun(elem, html_tag, attrs)
 				if not elem == '\n':
