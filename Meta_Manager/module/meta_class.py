@@ -3,17 +3,18 @@ import requests
 import json
 import threading
 from components.Date_Utils.module.date_time_utils import Date_Utils
+import os
 
 class Social_Manager(Date_Utils):
 
-	def	__init__(self, account, config_path, endpoints_path, data_path):
+	def	__init__(self, account, config_path, data_path, endpoints_path='standard', ):
 		super().__init__()
 		self.account_name = account
+		self.config_path = config_path
 		self.cred = self.display_credentials()
 		self.url_requests = self.display_credentials('request')
-		self.config_path = config_path
-		self.endpoints_path = endpoints_path
-		self.data_path = data_path
+		self.endpoints_path = './components/Meta_Manager/utils/' if endpoints_path=='standard'  else endpoints_path
+		self.data_path = data_path 
 		
 
 	def	display_credentials(self, section=''):
@@ -132,7 +133,8 @@ class Social_Manager(Date_Utils):
 		return data
 
 	def face_description(self, date_optional=None):
-		date_obj = self.return_period(date_optional)
+		self.date_optional = date_optional
+		date_obj = self.return_period()
 		request_validated = self.endpoints('face_desc', date_obj)
 		if request_validated == False:
 			return False
@@ -255,7 +257,8 @@ class Social_Manager(Date_Utils):
 		return new_videos
 
 	def insta_description(self, date_optional=None):
-		date_obj = self.return_period(date_optional)
+		self.date_optional = date_optional
+		date_obj = self.return_period()
 		request_validated = self.endpoints('insta_desc', date_obj)
 		if request_validated == False:
 			return False

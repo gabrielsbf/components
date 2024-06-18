@@ -1,0 +1,26 @@
+{
+	"face_desc" : ["/posts?since=",
+				"$(since_date)",
+				"&until=",
+				"$(until_date)",
+				"&fields=permalink_url,created_time,message,id,story,attachments{media_type}"],
+
+	"face_post_desc": ["?fields=permalink_url,created_time,message,id,story"],
+
+	"face_metric1" :["/insights?metric=post_impressions_unique,post_reactions_by_type_total,post_clicks_unique,post_engaged_users,post_engaged_fan"],
+
+	"face_metric2":["?fields=shares,comments.summary(true)"],
+
+	"face_video_metric": ["/insights?metric=post_video_length,post_video_views,post_video_views_unique,post_video_avg_time_watched,post_video_complete_views_organic,post_video_complete_views_organic_unique,post_video_complete_views_paid, post_video_complete_views_paid_unique, post_video_view_time_by_age_bucket_and_gender, post_video_view_time_by_region_id,post_video_social_actions_count_unique,post_video_views_15s,post_video_views_60s_excludes_shorter,post_video_view_time"],
+
+	"insta_desc": [
+	"/media?fields=comments_count,like_count,caption,media_product_type,media_type,media_url,permalink,timestamp&since=",
+	"$(since_date)",
+	"&until=",
+	"$(until_date)"],
+
+	"insta_metric_feed":["/insights?metric=impressions,reach,saved,video_views,total_interactions"],
+	"insta_metric_reels":["/insights?metric=comments,likes,plays,reach,saved,shares,total_interactions"]
+
+
+}
