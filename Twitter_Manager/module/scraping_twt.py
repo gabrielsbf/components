@@ -1,7 +1,6 @@
 from components.Automate_Process.module.automation_process import *
 from bs4 import BeautifulSoup
 from time import sleep
-import pandas as pd
 from datetime import datetime
 
 class Twitter_Manager(Automate_Process):
@@ -55,10 +54,8 @@ class Twitter_Manager(Automate_Process):
 			del data["text_links"]
 			del data['hrefs']
 		
-	def standard_procedure(self, outfile_name, since, until):
-		
-		data = self.return_brute_data(since, until)
+	def standard_procedure(self, dates:list[datetime]):
+		self.access_url()
+		data = self.return_brute_data(dates[0], dates[1])
 		self.clean_data(data)
-		print(data)
-		table = pd.DataFrame(data)
-		table.to_excel(outfile_name)
+		return data
