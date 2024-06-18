@@ -79,22 +79,22 @@ class Date_Utils:
 				else:
 					start_date = self.date_optional[0]
 					final_date = self.date_optional[1]
-				if len(start_date) <= 10:
-					start_date = ' '.join([start_date, "00:00:00"])
-				if len(final_date) <= 10:
-					final_date = ' '.join([final_date, "23:59:59"])
 				try:
-					start_date_parsed = datetime.datetime.strptime(start_date, "%d/%m/%Y %H:%M:%S")
-					final_date_parsed = datetime.datetime.strptime(final_date, "%d/%m/%Y %H:%M:%S")
+					if type(start_date) == str and len(start_date) <= 10:
+						start_date = ' '.join([start_date, "00:00:00"])
+						start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y %H:%M:%S")
+					if type(final_date) == str and len(final_date) <= 10:
+						final_date = ' '.join([final_date, "23:59:59"])
+						final_date = datetime.datetime.strptime(final_date, "%d/%m/%Y %H:%M:%S")	
 				except:
 					print("Alguma das datas é inválida, favor tentar novamente!")
 					self.date_optional = None
 					continue
-				if start_date_parsed < final_date_parsed:
+				if start_date < final_date:
 					break
 				print("Você selecionou um período inválido, por favor tente novamente!")
 				self.date_optional = None
-			return [start_date_parsed,final_date_parsed]
+			return [start_date,final_date]
 
 		arrayDatas = loop_data()
 		start_date_parsed = arrayDatas[0]

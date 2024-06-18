@@ -7,7 +7,7 @@ class Files_Handling():
 
     This class provides methods to handle file operations such as writing, reading, and appending data to files.
     """
-	def __init__(self, pattern_folder):
+	def __init__(self, pattern_folder='./data'):
 		"""
         Initializes the Files_Handling object.
 
@@ -15,7 +15,7 @@ class Files_Handling():
             pattern_folder (str): Pattern folder path.
         """
 		self.pattern_folder = pattern_folder
-		self.set_folders(self.folder_to_test)
+		self.set_folders(self.pattern_folder)
 
 	def set_folders(self, folder_test):
 		"""

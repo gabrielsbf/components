@@ -1,5 +1,5 @@
 import gspread
-from Files_Handler.module.file_handler import Files_Handling
+from components.Files_Handler.module.file_handler import Files_Handling
  
 class Sheets_Manager(Files_Handling):
 	"""
@@ -72,13 +72,6 @@ class Sheets_Manager(Files_Handling):
 
 	def get_line_response(self, wsheet_name, keyword, column_search:str,column_response:str):
 		"""
-        Inputs data into a worksheet.
-
-        Parameters:
-            js_obj (list): List of JSON objects.
-            sheet (gspread.Worksheet): Worksheet.
-            cel_range (str): Range of cells to input the data (e.g., "A1:B5").
-            js_keys (list): List of keys of the JSON objects.
         """
 		column_search_conv = ord(column_search.upper()) - 64
 		cfg_sheet = self.spreadsheet_obj.worksheet(wsheet_name)
