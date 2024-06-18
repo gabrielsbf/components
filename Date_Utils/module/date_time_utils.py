@@ -4,7 +4,7 @@ import calendar
 
 class Date_Utils:
 	def __init__(self, date_optional=None) -> None:        
-		months = {
+		self.months = {
 			1: "january",
 			2:"february",
 			3:"march",
