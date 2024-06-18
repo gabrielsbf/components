@@ -2,7 +2,7 @@ from configparser import ConfigParser
 import requests
 import json
 import threading
-from Date_Utils.module.date_time_utils import Date_Utils
+from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Social_Manager(Date_Utils):
 
