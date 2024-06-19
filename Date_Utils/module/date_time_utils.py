@@ -5,23 +5,42 @@ import calendar
 class Date_Utils:
 	def __init__(self, date_optional=None) -> None:        
 		self.months = {
-			1: "january",
-			2:"february",
-			3:"march",
-			4:"april",
-			5:"may",
-			6:"june",
-			7:"july",
-			8:"august",
-			9:"september",
-			10:"october",
-			11:"november",
-			12:"december"
+			'english':
+				{
+					1: "january",
+					2:"february",
+					3:"march",
+					4:"april",
+					5:"may",
+					6:"june",
+					7:"july",
+					8:"august",
+					9:"september",
+					10:"october",
+					11:"november",
+					12:"december"
+				},
+			'portuguese':
+				{
+					
+					1: "janeiro",
+					2:"fevereiro",
+					3:"março",
+					4:"abril",
+					5:"maio",
+					6:"junho",
+					7:"julio",
+					8:"agosto",
+					9:"setembro",
+					10:"outubro",
+					11:"novembro",
+					12:"dezembro"
+				}
 			}
 		self.date_optional = date_optional
 		self.period_setted = dict()
 
-	def return_period(self):
+	def return_period(self, language='portuguese'):
 		"""
 		Asks the user to select a time period, with a start date and an end date.
 
@@ -100,8 +119,8 @@ class Date_Utils:
 		start_date_parsed = arrayDatas[0]
 		final_date_parsed = arrayDatas[1]
 
-		detailed_start_Month = self.months.get(start_date_parsed.month)
-		detailed_final_Month = self.months.get(final_date_parsed.month)
+		detailed_start_Month = self.months[language].get(start_date_parsed.month)
+		detailed_final_Month = self.months[language].get(final_date_parsed.month)
 
 		dates = {
 			"start_date": {
@@ -109,10 +128,10 @@ class Date_Utils:
 			"parsed_camel" : start_date_parsed.strftime("%d_%m_%Y"),
 			"parsed_slash" :start_date_parsed.strftime("%d/%m/%Y"),
 			"mes" : detailed_start_Month,
-			"num_mes":str(start_date_parsed.month),
-			"dia" :str(start_date_parsed.day),
-			"ano" :str(start_date_parsed.year),
-			"unix_time": str(int(time.mktime(start_date_parsed.timetuple())) - int(10800))
+			"num_mes":int(start_date_parsed.month),
+			"dia" :int(start_date_parsed.day),
+			"ano" :int(start_date_parsed.year),
+			"unix_time": int(time.mktime(start_date_parsed.timetuple())) - int(10800)
 			},
 
 			"final_date": {
@@ -120,16 +139,16 @@ class Date_Utils:
 			"parsed_camel" : final_date_parsed.strftime("%d_%m_%Y"),
 			"parsed_slash" :final_date_parsed.strftime("%d/%m/%Y"),
 			"mes" : detailed_final_Month,
-			"num_mes":str(final_date_parsed.month),
-			"dia" :str(final_date_parsed.day),
-			"ano" :str(final_date_parsed.year),
-			"unix_time": str(int(time.mktime(final_date_parsed.timetuple())) - int(10800))
+			"num_mes":int(final_date_parsed.month),
+			"dia" :int(final_date_parsed.day),
+			"ano" :int(final_date_parsed.year),
+			"unix_time": int(time.mktime(final_date_parsed.timetuple())) - int(10800)
 			}
 		}
 		print(dates)
 		return dates
 
-	def month_year():
+	def month_year(self):
 		"""    
 		Requests the user to select a start and end month by specifying the month and year in the format 'month/year'.
 
@@ -203,4 +222,3 @@ class Date_Utils:
 			return True
 		except: pass
 		return False
-	
