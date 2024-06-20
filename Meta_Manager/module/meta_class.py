@@ -113,9 +113,9 @@ class Social_Manager(Date_Utils):
 		def cases(iter):
 			match iter:
 				case '$(since_date)':
-					return period["start_date"]["unix_time"]
+					return str(period["start_date"]["unix_time"])
 				case '$(until_date)':
-					return period["final_date"]["unix_time"]
+					return str(period["final_date"]["unix_time"])
 				case _:
 					return iter
 		url = ''
