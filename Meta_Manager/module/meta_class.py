@@ -14,7 +14,8 @@ class Social_Manager(Date_Utils):
 		self.cred = self.display_credentials()
 		self.url_requests = self.display_credentials('request')
 		self.endpoints_path = './components/Meta_Manager/utils/' if endpoints_path=='standard'  else endpoints_path
-		self.data_path = data_path 
+		self.data_path = data_path
+		self.test_req()
 		
 
 	def	display_credentials(self, section=''):
