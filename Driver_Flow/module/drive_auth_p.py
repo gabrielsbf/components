@@ -12,6 +12,7 @@ class Drive_Manager:
         self.SCOPES = ['https://www.googleapis.com/auth/drive']
         self.token_path = token_path
         self.cred_path = cred_path
+        self.service = self.return_drive_service()
 
     def return_drive_service(self):
         # Variable creds will store the user access token.
@@ -105,11 +106,11 @@ class Drive_Manager:
         return result
 
 
-    def create_drive_file(service, file_type, parent_folder, file_name):
-        file= service.files().create(
+    def create_drive_file(self, file_type, parent_folder_id, file_name):
+        file= self.service.files().create(
             body={
                 'mimeType': "application/vnd.google-apps." + file_type,
-                "parents": [parent_folder],
+                "parents": [parent_folder_id],
                 "name" : file_name
                 },
             enforceSingleParent=False,
