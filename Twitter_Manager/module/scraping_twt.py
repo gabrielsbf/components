@@ -17,6 +17,16 @@ class Twitter_Manager(Automate_Process):
 	def get_obj_date(self, soup: BeautifulSoup, html_tag = None, attrs = None):
 		target = soup.find('time')
 		return target.get('datetime')
+	
+	def get_twitter_metric_string(self, elem:BeautifulSoup, tag, attributes):
+		target = elem.find("div", {'role':'group'}).get("aria-label")
+		metrics_splt = target.split(",")
+		result = {}
+		print("metrics splited are: ", metrics_splt)
+		for metric in metrics_splt:
+			result.update({metric.strip().split(' ')[-1]:metric.strip().split(' ')[0]})
+		print("Result is: ", result)
+		return result
 
 	def return_brute_data(self, since: datetime, until: datetime):
 		i = 1
@@ -30,9 +40,9 @@ class Twitter_Manager(Automate_Process):
 			sleep(2)
 			data = self.access_field(By.XPATH, '//section[@class="css-175oi2r"]',6)
 			soup = self.webElement_to_html(data)
-			post = self.get_all_elem_by_filter(soup, "article",{'role': 'article'}, self.get_obj_date)
+			post = self.get_all_elem_by_filter(soup, "article",{'role': 'article'}, [self.get_obj_date, self.get_twitter_metric_string])
 			list_values.extend(post)
-			last_date = datetime.strptime(list_values[-1].get('extra'), "%Y-%m-%dT%H:%M:%S.%fZ")
+			last_date = datetime.strptime(list_values[-1].get('extra_1'), "%Y-%m-%dT%H:%M:%S.%fZ")
 			print("last date is: ", last_date)
 			i+=1
 		sleep(2)
@@ -42,8 +52,8 @@ class Twitter_Manager(Automate_Process):
 			if urls.count(x['hrefs']) == 0:
 				result.append(x)
 				urls.append(x['hrefs'])
-		return list(filter(lambda x: datetime.strptime(x['extra'],"%Y-%m-%dT%H:%M:%S.%fZ") >= since 
-			and datetime.strptime(x['extra'],"%Y-%m-%dT%H:%M:%S.%fZ") <= until, result))
+		return list(filter(lambda x: datetime.strptime(x['extra_1'],"%Y-%m-%dT%H:%M:%S.%fZ") >= since 
+			and datetime.strptime(x['extra_1'],"%Y-%m-%dT%H:%M:%S.%fZ") <= until, result))
 
 	def clean_data(self, brute_data: list):
 		for data in brute_data:
