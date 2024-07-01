@@ -52,8 +52,8 @@ class Twitter_Manager(Automate_Process):
 			if urls.count(x['hrefs']) == 0:
 				result.append(x)
 				urls.append(x['hrefs'])
-		return list(filter(lambda x: datetime.strptime(x['extra'],"%Y-%m-%dT%H:%M:%S.%fZ") >= since 
-			and datetime.strptime(x['extra'],"%Y-%m-%dT%H:%M:%S.%fZ") <= until, result))
+		return list(filter(lambda x: datetime.strptime(x['extra_1'],"%Y-%m-%dT%H:%M:%S.%fZ") >= since 
+			and datetime.strptime(x['extra_1'],"%Y-%m-%dT%H:%M:%S.%fZ") <= until, result))
 
 	def clean_data(self, brute_data: list):
 		for data in brute_data:
