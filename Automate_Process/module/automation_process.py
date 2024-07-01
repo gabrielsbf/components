@@ -135,7 +135,7 @@ class Automate_Process(Selenium_Manager):
 			else:
 				text_object["texts"].append(elem)
 	
-	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None)->list:
+	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None | list)->list:
 		"""
         Get all elements by filter.
 
@@ -158,7 +158,10 @@ class Automate_Process(Selenium_Manager):
 				try:self.get_hrefs(elem.find_all('a'), text_object)
 				except:print("element don't have hrefs")
 				if not custom_fun == None:
-					text_object['extra'] = custom_fun(elem, html_tag, attrs)
+					nb = 1
+					for i in custom_fun:
+						text_object['extra_' + str(nb)] = i(elem, html_tag, attrs)
+						nb+=1
 				if not elem == '\n':
 					try:
 						texts = elem.get_text("|").split("|")
