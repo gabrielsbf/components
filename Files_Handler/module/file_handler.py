@@ -7,7 +7,7 @@ class Files_Handling():
 
     This class provides methods to handle file operations such as writing, reading, and appending data to files.
     """
-	def __init__(self, pattern_folder='./data'):
+	def __init__(self, pattern_folder='./data/'):
 		"""
         Initializes the Files_Handling object.
 
@@ -89,9 +89,10 @@ class Files_Handling():
 			folder = pattern_folder
 		else:
 			folder = self.pattern_folder
-		format = filename.split('.')[-1]
-		if format == 'json':
+		try:
 			data = self.read_file(filename)
+		except:
+			data = []
 		data = data + input
 		self.write_file(data, filename, folder)
 		
