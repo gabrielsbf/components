@@ -1,8 +1,8 @@
 import requests
 import os
-from cfg_manager.module.config_manager import Read_config
+from components.cfg_manager.module.config_manager import Read_config
 from configparser import ConfigParser
-from Files_Handler.file_handler import Files_Handling
+from components.Files_Handler.module.file_handler import Files_Handling
 
 
 class Trello_Manager(Files_Handling):

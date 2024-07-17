@@ -84,3 +84,16 @@ class Drive_Manager:
             media_mime_type=None
         ).execute()
         return file
+
+    def duplicate_drive_file(self, file_id, parent_folder, file_name):
+        file= self.service.files().copy(
+            fileId=file_id,
+            body={
+                "parents": [parent_folder],
+                "name" : file_name
+                },
+            supportsTeamDrives=True,
+            ocrLanguage=None,
+            supportsAllDrives=True,
+        ).execute()
+        return file
