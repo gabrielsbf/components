@@ -1,4 +1,3 @@
-
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -135,7 +134,7 @@ class Automate_Process(Selenium_Manager):
 			else:
 				text_object["texts"].append(elem)
 	
-	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None | list)->list:
+	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None)->list:
 		"""
         Get all elements by filter.
 
