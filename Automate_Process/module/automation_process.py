@@ -11,7 +11,7 @@ from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Selenium_Manager(Date_Utils):
 
-	def __init__(self, url_post_3w, chrome_data_path, user_agent, disable_graphics=True):
+	def __init__(self, url_post_3w, chrome_data_path, user_agent, profile, disable_graphics=True):
 		"""
         Initialize Selenium_Manager class.
 
@@ -25,6 +25,7 @@ class Selenium_Manager(Date_Utils):
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
 		self.options.add_argument(f"--user-data-dir={chrome_data_path}")
+		self.options.add_argument(f"--profile-directory={profile}")
 		if disable_graphics == True:
 			self.options.add_argument('--headless')
 			self.options.add_argument('--disable-gpu')
@@ -93,8 +94,8 @@ class Selenium_Manager(Date_Utils):
 		action.key_down(first_key).send_keys(second_key).key_up(first_key).perform()
 
 class Automate_Process(Selenium_Manager):
-	def __init__(self, url_post_3w, chrome_data_path, user_agent, disable_graphics=True):
-		super().__init__(url_post_3w, chrome_data_path, user_agent, disable_graphics)
+	def __init__(self, url_post_3w, chrome_data_path, user_agent, profile="Default", disable_graphics=True):
+		super().__init__(url_post_3w, chrome_data_path, user_agent, profile, disable_graphics)
 
 	def webElement_to_html(self, elem: WebElement) -> BeautifulSoup:
 		"""
