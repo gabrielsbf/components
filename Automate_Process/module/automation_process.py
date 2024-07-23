@@ -12,7 +12,7 @@ from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Selenium_Manager(Date_Utils):
 
-	def __init__(self, url_post_3w, chrome_data_path:str, user_agent:str, remote_connection=False, profile="Default", other_options={}, disable_graphics=True, ):
+	def __init__(self, url_post_3w, chrome_data_path, user_agent, remote_connection, profile, other_options, disable_graphics):
 		"""
         Initialize Selenium_Manager class.
 
@@ -25,19 +25,20 @@ class Selenium_Manager(Date_Utils):
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
-		# self.options.add_argument(f"--user-data-dir={chrome_data_path}")
-		# self.options.add_argument(f"--profile-directory={profile}")
-		if disable_graphics == True:
-			self.options.add_argument('--headless')
-			self.options.add_argument('--disable-gpu')
+		if remote_connection == None:
+			self.options.add_argument(f"--user-data-dir={chrome_data_path}")
+			self.options.add_argument(f"--profile-directory={profile}")
+			self.options.add_argument(f"user-agent={user_agent}")
+			if disable_graphics == True:
+				self.options.add_argument('--headless')
+				self.options.add_argument('--disable-gpu')
 		self.options.add_argument('log-level=2')
-		self.options.add_argument(f"user-agent={user_agent}")
 		self.register_sec_options(other_options)
 		self.remote_connection = remote_connection
 		self.driver = self.open_driver()
 		
 	def register_sec_options(self, other_options: dict)->None:
-		if len(other_options) > 0:
+		if other_options != False:
 			for key, value in other_options.items():
 				if value == True:
 					self.options.add_argument(value)
@@ -110,10 +111,10 @@ class Selenium_Manager(Date_Utils):
 class Automate_Process(Selenium_Manager):
 	def __init__(self, 
 				url_post_3w, 
-				chrome_data_path, 
-				user_agent,
+				chrome_data_path="", 
+				user_agent="",
 				profile="Default",
-				other_options={}, 
+				other_options=False, 
 				disable_graphics=True,
 				remote_connection=None):
 		
