@@ -5,13 +5,14 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.remote.webelement import WebElement
+
 from bs4 import BeautifulSoup
 import re
 from components.Date_Utils.module.date_time_utils import Date_Utils
 
 class Selenium_Manager(Date_Utils):
 
-	def __init__(self, url_post_3w, chrome_data_path, user_agent, profile, disable_graphics=True):
+	def __init__(self, url_post_3w, chrome_data_path:str, user_agent:str, remote_connection=False, profile="Default", other_options={}, disable_graphics=True, ):
 		"""
         Initialize Selenium_Manager class.
 
@@ -24,14 +25,24 @@ class Selenium_Manager(Date_Utils):
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
-		self.options.add_argument(f"--user-data-dir={chrome_data_path}")
-		self.options.add_argument(f"--profile-directory={profile}")
+		# self.options.add_argument(f"--user-data-dir={chrome_data_path}")
+		# self.options.add_argument(f"--profile-directory={profile}")
 		if disable_graphics == True:
 			self.options.add_argument('--headless')
 			self.options.add_argument('--disable-gpu')
 		self.options.add_argument('log-level=2')
 		self.options.add_argument(f"user-agent={user_agent}")
+		self.register_sec_options(other_options)
+		self.remote_connection = remote_connection
 		self.driver = self.open_driver()
+		
+	def register_sec_options(self, other_options: dict)->None:
+		if len(other_options) > 0:
+			for key, value in other_options.items():
+				if value == True:
+					self.options.add_argument(value)
+				else:
+					self.options.add_argument(f"{key}={value}")
 
 	def open_driver(self):
 		"""
@@ -40,8 +51,11 @@ class Selenium_Manager(Date_Utils):
         Returns:
             WebDriver: Chrome WebDriver.
         """
-		driver = webdriver.Chrome(options=self.options,
+		if self.remote_connection == False:
+			driver = webdriver.Chrome(options=self.options,
 									   service=self.s)
+		else:
+			driver = webdriver.Remote(options=self.options)
 		return driver
 	
 	def access_url(self):
@@ -94,8 +108,22 @@ class Selenium_Manager(Date_Utils):
 		action.key_down(first_key).send_keys(second_key).key_up(first_key).perform()
 
 class Automate_Process(Selenium_Manager):
-	def __init__(self, url_post_3w, chrome_data_path, user_agent, profile="Default", disable_graphics=True):
-		super().__init__(url_post_3w, chrome_data_path, user_agent, profile, disable_graphics)
+	def __init__(self, 
+				url_post_3w, 
+				chrome_data_path, 
+				user_agent,
+				profile="Default",
+				other_options={}, 
+				disable_graphics=True,
+				remote_connection=None):
+		
+		super().__init__(url_post_3w, 
+				   		chrome_data_path,
+						user_agent,
+						profile,
+						other_options,
+						disable_graphics,
+						remote_connection)
 
 	def webElement_to_html(self, elem: WebElement) -> BeautifulSoup:
 		"""
