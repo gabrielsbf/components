@@ -25,7 +25,7 @@ class Selenium_Manager(Date_Utils):
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
 		self.s = Service(ChromeDriverManager().install())
-		if remote_connection == None:
+		if remote_connection == False:
 			self.options.add_argument(f"--user-data-dir={chrome_data_path}")
 			self.options.add_argument(f"--profile-directory={profile}")
 			self.options.add_argument(f"user-agent={user_agent}")
@@ -116,15 +116,16 @@ class Automate_Process(Selenium_Manager):
 				profile="Default",
 				other_options=False, 
 				disable_graphics=True,
-				remote_connection=None):
+				remote_connection=False):
 		
-		super().__init__(url_post_3w, 
-				   		chrome_data_path,
-						user_agent,
-						profile,
-						other_options,
-						disable_graphics,
-						remote_connection)
+		super().__init__(
+					url_post_3w, 
+					chrome_data_path,
+					user_agent=user_agent,
+					profile=profile,
+					other_options=other_options,
+					disable_graphics=disable_graphics,
+					remote_connection=remote_connection)
 
 	def webElement_to_html(self, elem: WebElement) -> BeautifulSoup:
 		"""
