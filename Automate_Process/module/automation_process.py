@@ -63,7 +63,7 @@ class Selenium_Manager(Date_Utils):
 		self.driver.get(self.url)
 		print(f"a url {self.url} foi acessada!")
 
-	def access_field(self, type : By, elem, time_to_wait) -> WebElement:
+	def access_field(self, type : By, elem, time_to_wait=60) -> WebElement:
 		"""
     	Access a specific field on the webpage.
 
