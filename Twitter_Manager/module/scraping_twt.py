@@ -4,9 +4,22 @@ from time import sleep
 from datetime import datetime
 
 class Twitter_Manager(Automate_Process):
-	def __init__(self, account, user_data_path, user_agent, graphics_disable=True):
+	def __init__(self, 
+	      			account,
+				user_data_path="", 
+				user_agent="",
+				profile="Default",
+				other_options=False, 
+				disable_graphics=True,
+				remote_connection=False):
 		self.account = account
-		super().__init__(f'x.com/{self.account}', user_data_path, user_agent, graphics_disable)
+		super().__init__(f'x.com/{self.account}',
+		    		 user_data_path,
+				 user_agent,
+				 profile,
+				 other_options,
+				 disable_graphics,
+				 remote_connection)
 
 	def get_post_href(self, data: list):
 		for link in data:
