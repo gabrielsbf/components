@@ -179,6 +179,11 @@ class Trello_Manager(Files_Handling):
         new_cards (list): List of new cards.
         all_cards_new (bool, optional): Indicates if all cards are new (default: True).
     """
+			
+			if not os.path.exists(self.boardname + '_tempCards.json'):
+				self.write_file([], self.boardname + '_tempCards.json')
+			if not os.path.exists(self.new_cards):
+				os.makedirs(self.new_cards)
 			print("É a primeira execução do app\ncriando arquivos")
 			self.write_file(self.board_obj, self.boardname + '_boards.json')
 			self.write_file(self.get_lists(), self.boardname + '_lists.json')
@@ -188,6 +193,7 @@ class Trello_Manager(Files_Handling):
 				self.write_file(new_cards, 'new_cards.json', self.new_cards)
 			else:
 				self.write_file([], 'new_cards.json', self.new_cards)
+
 	
 	def verify_new_cards(self):
 		"""
