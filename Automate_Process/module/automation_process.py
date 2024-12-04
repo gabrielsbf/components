@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.remote.webelement import WebElement
-
+import os
 from bs4 import BeautifulSoup
 import re
 from components.Date_Utils.module.date_time_utils import Date_Utils
@@ -24,7 +24,10 @@ class Selenium_Manager(Date_Utils):
 		super().__init__()
 		self.url = "https://" + url_post_3w
 		self.options = webdriver.ChromeOptions()
-		self.s = Service(ChromeDriverManager().install())
+		chrome_install = ChromeDriverManager().install()
+		folder = os.path.dirname(chrome_install)
+		chromedriver_path = os.path.join(folder, "chromedriver.exe")
+		self.s = Service(chromedriver_path)
 		if remote_connection == False:
 			self.options.add_argument(f"--user-data-dir={chrome_data_path}")
 			self.options.add_argument(f"--profile-directory={profile}")
@@ -53,8 +56,7 @@ class Selenium_Manager(Date_Utils):
             WebDriver: Chrome WebDriver.
         """
 		if self.remote_connection == False:
-			driver = webdriver.Chrome(options=self.options,
-									   service=self.s)
+			driver = webdriver.Chrome(options=self.options, service=self.s)
 		else:
 			driver = webdriver.Remote(options=self.options)
 		return driver
