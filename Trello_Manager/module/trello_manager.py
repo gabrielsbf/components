@@ -5,7 +5,7 @@ from components.Files_Handler.module.file_handler import Files_Handling
 
 
 class Trello_Manager(Files_Handling):
-	def __init__(self, boardname, cfg_path, boards_path, new_cards_path, list_allowed:list, section='trello'):
+	def __init__(self, boardname, cfg_path, boards_path, new_cards_path, list_allowed=["all"], section='trello'):
 		"""
     Manages Trello operations.
 
