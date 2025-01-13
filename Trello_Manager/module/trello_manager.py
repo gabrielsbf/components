@@ -1,7 +1,6 @@
 import requests
 import os
 from components.cfg_manager.module.config_manager import Read_config
-from configparser import ConfigParser
 from components.Files_Handler.module.file_handler import Files_Handling
 
 
@@ -109,7 +108,6 @@ class Trello_Manager(Files_Handling):
             str: ID of the list.
         """
 		lists_obj = self.get_lists()
-
 		resp = list(filter(lambda x: x["name"] == list_name, lists_obj))
 		return resp[0]['id']
 
