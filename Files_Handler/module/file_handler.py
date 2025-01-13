@@ -15,7 +15,8 @@ class Files_Handling():
             pattern_folder (str): Pattern folder path.
         """
 		self.pattern_folder = pattern_folder
-		self.set_folders(self.pattern_folder)
+		if self.pattern_folder != "*":
+			self.set_folders(self.pattern_folder)
 
 	def set_folders(self, folder_test):
 		"""

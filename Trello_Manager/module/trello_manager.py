@@ -6,7 +6,7 @@ from components.Files_Handler.module.file_handler import Files_Handling
 
 
 class Trello_Manager(Files_Handling):
-	def __init__(self, boardname, cfg_path, boards_path, new_cards_path, list_allowed=["all"], section='trello'):
+	def __init__(self, boardname, credentials, boards_path, new_cards_path, list_allowed=["all"], section='trello'):
 		"""
     Manages Trello operations.
 
@@ -14,7 +14,7 @@ class Trello_Manager(Files_Handling):
 
     Parameters:
         boardname (str): Name of the Trello board.
-        cfg_path (str): Path to the configuration file.
+        credentials (str): Path to the configuration file.
         boards_path (str): Path to store Trello boards information.
         new_cards_path (str): Path to store new cards information.
         list_allowed (list): List of allowed lists.
@@ -22,7 +22,7 @@ class Trello_Manager(Files_Handling):
     """
 		super().__init__(boards_path)
 		self.boards_path = boards_path
-		self.cred = Read_config(cfg_path, section).cred
+		self.cred = Read_config(credentials, section).cred if type(credentials) == str else credentials
 		self.boardname = boardname
 		self.board_obj = self.set_board(self.get_boards())
 		self.lists = list_allowed
