@@ -1,12 +1,11 @@
 import requests
 import os
 from components.cfg_manager.module.config_manager import Read_config
-from configparser import ConfigParser
 from components.Files_Handler.module.file_handler import Files_Handling
 
 
 class Trello_Manager(Files_Handling):
-	def __init__(self, boardname, cfg_path, boards_path, new_cards_path, list_allowed:list, section='trello'):
+	def __init__(self, boardname, credentials, boards_path, new_cards_path, list_allowed=["all"], section='trello'):
 		"""
     Manages Trello operations.
 
@@ -14,7 +13,7 @@ class Trello_Manager(Files_Handling):
 
     Parameters:
         boardname (str): Name of the Trello board.
-        cfg_path (str): Path to the configuration file.
+        credentials (str): Path to the configuration file.
         boards_path (str): Path to store Trello boards information.
         new_cards_path (str): Path to store new cards information.
         list_allowed (list): List of allowed lists.
@@ -22,7 +21,7 @@ class Trello_Manager(Files_Handling):
     """
 		super().__init__(boards_path)
 		self.boards_path = boards_path
-		self.cred = Read_config(cfg_path, section).cred
+		self.cred = Read_config(credentials, section).cred if type(credentials) == str else credentials
 		self.boardname = boardname
 		self.board_obj = self.set_board(self.get_boards())
 		self.lists = list_allowed
@@ -109,7 +108,6 @@ class Trello_Manager(Files_Handling):
             str: ID of the list.
         """
 		lists_obj = self.get_lists()
-
 		resp = list(filter(lambda x: x["name"] == list_name, lists_obj))
 		return resp[0]['id']
 
@@ -179,6 +177,11 @@ class Trello_Manager(Files_Handling):
         new_cards (list): List of new cards.
         all_cards_new (bool, optional): Indicates if all cards are new (default: True).
     """
+			
+			if not os.path.exists(self.boardname + '_tempCards.json'):
+				self.write_file([], self.boardname + '_tempCards.json')
+			if not os.path.exists(self.new_cards):
+				os.makedirs(self.new_cards)
 			print("É a primeira execução do app\ncriando arquivos")
 			self.write_file(self.board_obj, self.boardname + '_boards.json')
 			self.write_file(self.get_lists(), self.boardname + '_lists.json')
@@ -188,6 +191,7 @@ class Trello_Manager(Files_Handling):
 				self.write_file(new_cards, 'new_cards.json', self.new_cards)
 			else:
 				self.write_file([], 'new_cards.json', self.new_cards)
+
 	
 	def verify_new_cards(self):
 		"""
