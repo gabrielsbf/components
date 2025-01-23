@@ -116,7 +116,6 @@ class Date_Utils:
 			return [start_date,final_date]
 
 		arrayDatas = loop_data()
-		print()
 		start_date_parsed = arrayDatas[0]
 		final_date_parsed = arrayDatas[1]
 

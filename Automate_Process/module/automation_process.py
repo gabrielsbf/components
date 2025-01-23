@@ -77,7 +77,6 @@ class Selenium_Manager(Date_Utils):
     	Returns:
         	WebElement: The accessed element.
     """
-		# print(f"Acessando o elemento: {elem}")
 		self.driver.implicitly_wait(time_to_wait)
 		elem = self.driver.find_element(type, elem)
 		return elem
