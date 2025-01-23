@@ -44,8 +44,13 @@ class Trello_Manager(Files_Handling):
 		api_key = self.cred['key']
 		domain = self.cred["domain"]
 		url = domain + endpoint + '?key=' + api_key + '&token=' + api_token
-		req = requests.get(url)
-		return req.json()
+		req = None
+		for i in range(0, 11):
+			try: 
+				req = requests.get(url)
+				break
+			except: print("error on request - Try nb: ", i)
+		return req.json() if req != None else req
 
 	def get_boards(self):
 		"""
