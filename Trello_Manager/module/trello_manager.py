@@ -24,6 +24,7 @@ class Trello_Manager(Files_Handling):
 		self.cred = Read_config(cfg_path, section).cred
 		self.boardname = boardname
 		self.board_obj = self.set_board(self.get_boards())
+		self.board_labels = self.make_request("/boards/" + self.board_obj["id"] + "/labels")
 		self.lists = list_allowed
 		self.new_cards = new_cards_path
 	
