@@ -91,7 +91,7 @@ class Mongo_Manager(Files_Handling):
             print(f"Erro na conexão: {e}")
 
 
-    def reset_inv(self, collection):
+    def reset_data(self, collection):
         self.inventory.get_collection(collection).delete_many({})
         resp = {}
         if (collection == "categoria"):
