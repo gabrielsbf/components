@@ -35,10 +35,10 @@ class Drive_Manager:
         # If no valid credentials are available,
         # request the user to log in.
         if not creds or not creds.valid:
-
             # If token is expired, it will be refreshed,
             # else, we will request a new one.
             if creds and creds.expired and creds.refresh_token:
+                print("entering in refresh")
                 creds.refresh(Request())
             else:
                 flow = InstalledAppFlow.from_client_secrets_file(

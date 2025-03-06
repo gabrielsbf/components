@@ -91,7 +91,7 @@ class Files_Handling():
 		else:
 			folder = self.pattern_folder
 		try:
-			data = self.read_file(filename)
+			data = self.read_file(filename, folder)
 		except:
 			data = []
 		data = data + input

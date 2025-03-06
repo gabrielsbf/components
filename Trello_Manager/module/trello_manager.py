@@ -2,7 +2,7 @@ import requests
 import os
 from components.cfg_manager.module.config_manager import Read_config
 from components.Files_Handler.module.file_handler import Files_Handling
-
+from time import sleep
 
 class Trello_Manager(Files_Handling):
 	def __init__(self, boardname, credentials, boards_path, new_cards_path, list_allowed=["all"], section='trello'):
@@ -24,6 +24,7 @@ class Trello_Manager(Files_Handling):
 		self.cred = Read_config(credentials, section).cred if type(credentials) == str else credentials
 		self.boardname = boardname
 		self.board_obj = self.set_board(self.get_boards())
+		self.board_labels = self.make_request("/boards/" + self.board_obj["id"] + "/labels")
 		self.lists = list_allowed
 		self.new_cards = new_cards_path
 	
@@ -43,8 +44,16 @@ class Trello_Manager(Files_Handling):
 		api_key = self.cred['key']
 		domain = self.cred["domain"]
 		url = domain + endpoint + '?key=' + api_key + '&token=' + api_token
-		req = requests.get(url)
-		return req.json()
+		req = None
+		for i in range(0, 11):
+			try: 
+				req = requests.get(url)
+				break
+			except: 
+				print("error on request - Try nb: ", i)
+				sleep(5)
+
+		return req.json() if req != None else req
 
 	def get_boards(self):
 		"""
@@ -142,6 +151,7 @@ class Trello_Manager(Files_Handling):
             bool: True if the card exists in the old cards, False otherwise.
         """
 		has_old_id = list(filter(lambda x : x['id'] == check['id'], old_cards))
+		print("has old id" , has_old_id)
 		return True if has_old_id == [] else False
 
 	def check_elements(self, old, new):
@@ -162,6 +172,7 @@ class Trello_Manager(Files_Handling):
 		for check in new:
 			if check not in old:
 				check["condition"] = 'new' if self.check_cards(check, old) == True else 'update'
+				print("value to check is:", check["name"],check["shortUrl"], "result is:", check["condition"])
 				diference.append(check)
 		return diference
 
@@ -177,7 +188,7 @@ class Trello_Manager(Files_Handling):
         new_cards (list): List of new cards.
         all_cards_new (bool, optional): Indicates if all cards are new (default: True).
     """
-			
+			print("FIRST EXEC")	
 			if not os.path.exists(self.boardname + '_tempCards.json'):
 				self.write_file([], self.boardname + '_tempCards.json')
 			if not os.path.exists(self.new_cards):
@@ -219,7 +230,7 @@ class Trello_Manager(Files_Handling):
 			return 0
 		else:
 			print("Cards novos ou cards modificados foram identificados!")
-			self.write_file(self.get_cards_from_lists(), self.boardname + '_tempCards.json')
+			self.write_file(new_cards, self.boardname + '_tempCards.json')
 			new_cards_json = self.check_elements(old_cards, new_cards)
 			new_cards_json = list(filter(lambda x: x['condition'] == 'new', new_cards_json))
 			self.write_file(new_cards_json,
