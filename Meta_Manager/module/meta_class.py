@@ -166,8 +166,9 @@ class Social_Manager(Date_Utils):
 
 		def new_key(value):
 			new_dict = {}
+			print("value is:", value)
 			new_dict.update({"post_id": value.get("id"),
-							"type" : value["attachments"]["data"][0].get("media_type"),
+							"type" : "" if value.get("attachments") == None else value["attachments"]["data"][0].get("media_type"),
 							"permalink_url" : value.get("permalink_url"),
 							"message" : value.get("message"),
 							"created_time" : value.get("created_time")
