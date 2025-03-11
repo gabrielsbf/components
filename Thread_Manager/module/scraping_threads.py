@@ -50,6 +50,7 @@ class Threads_Manager(Automate_Process):
 			dropdown = value * i
 			self.driver.execute_script(f"window.scrollTo(0, {dropdown});")
 			sleep(2)
+			# data = self.access_field(By.XPATH, '//div[@aria-label="Column body"]',6)
 			data = self.access_field(By.XPATH, '//div[@aria-label="Corpo da coluna"]',6)
 			soup = self.webElement_to_html(data)
 			post = self.get_all_elem_by_filter(soup, "div",{'class': 'x1a2a7pz x1n2onr6'}, [self.get_obj_date])
