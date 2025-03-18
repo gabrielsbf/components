@@ -37,7 +37,7 @@ class Tiktok_Manager(Automate_Process):
 	def access_posts(self, videos_dict):
 		self.driver.get(videos_dict[0]["link"])
 		print("video indexed: ", videos_dict[0])
-		# frame_tree = self.driver.execute_cdp_cmd("Page.getResourceTree", {})
+		frame_tree = self.driver.execute_cdp_cmd("Page.getResourceTree", {})
 		print("FRAME TREE\n", frame_tree)
 
 		# for video in videos_dict:
