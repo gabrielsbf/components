@@ -52,7 +52,7 @@ class Twitter_Manager(Automate_Process):
 			self.driver.execute_script(f"window.scrollTo(0, {dropdown});")
 			sleep(2)
 			data = self.access_field(By.XPATH, '//section[@class="css-175oi2r"]',6)
-			soup = self.webElement_to_html(data)
+			soup = self.webElement_to_soup(data)
 			post = self.get_all_elem_by_filter(soup, "article",{'role': 'article'}, [self.get_obj_date, self.get_twitter_metric_string])
 			list_values.extend(post)
 			last_date = datetime.strptime(list_values[-1].get('extra_1'), "%Y-%m-%dT%H:%M:%S.%fZ")

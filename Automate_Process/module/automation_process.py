@@ -128,7 +128,7 @@ class Automate_Process(Selenium_Manager):
 					disable_graphics=disable_graphics,
 					remote_connection=remote_connection)
 
-	def webElement_to_html(self, elem: WebElement) -> BeautifulSoup:
+	def webElement_to_soup(self, elem: WebElement) -> BeautifulSoup:
 		"""
 		Get the outerHTML of a field accessed, processes a soup with the BeautifulSoup class
 		and returning the soup.
@@ -166,7 +166,7 @@ class Automate_Process(Selenium_Manager):
 			else:
 				text_object["texts"].append(elem)
 	
-	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None)->list:
+	def get_all_elem_by_filter(self, soup: BeautifulSoup, html_tag: str, attrs:dict, custom_fun = None)->list[dict]:
 		"""
         Get all elements by filter.
 
@@ -201,5 +201,5 @@ class Automate_Process(Selenium_Manager):
 						print(f"Couldn't get the attributes of the below html element:\n{elem}\nError:{err}")
 				# else :
 				# 	print("O elemento é uma quebra de linha")
-			arr_list.append(text_object)	
+			arr_list.append(text_object)
 		return arr_list

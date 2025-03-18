@@ -52,7 +52,7 @@ class Threads_Manager(Automate_Process):
 			sleep(2)
 			# data = self.access_field(By.XPATH, '//div[@aria-label="Column body"]',6)
 			data = self.access_field(By.XPATH, '//div[@aria-label="Corpo da coluna"]',6)
-			soup = self.webElement_to_html(data)
+			soup = self.webElement_to_soup(data)
 			post = self.get_all_elem_by_filter(soup, "div",{'class': 'x1a2a7pz x1n2onr6'}, [self.get_obj_date])
 			list_values.extend(post)
 			last_date = datetime.strptime(list_values[-1].get('extra_1'), "%Y-%m-%dT%H:%M:%S.%fZ")
