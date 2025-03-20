@@ -1,14 +1,16 @@
 import requests
 import json
 import random
+from components.cfg_manager.module.env_manager import Read_env
+from pathlib import Path
 
 class ProxyRequest:
         def __init__(self):
-                self.URL = "https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&country=br&protocol=http&proxy_format=protocolipport&format=json&timeout=20000"
+                self.env_values = Read_env(Path(__file__).parent.joinpath(".env")).env_values
 
         def publicListGeneration(self, qnt=1):
                 result = []
-                proxies_list = json.loads(requests.get(self.URL).content)["proxies"]
+                proxies_list = json.loads(requests.get(self.env_values["URL_PROXYSCRAPE"]).content)["proxies"]
                 elements = []
                 print(f"proxies list have size: {len(proxies_list)}")
                 for _ in range(qnt):
@@ -23,8 +25,8 @@ class ProxyRequest:
         
         def getWebShare(self, qnt=1): 
                 proxies_list = requests.get(
-                "https://proxy.webshare.io/api/v2/proxy/list/?mode=direct&page=1&page_size=25",
-                headers={"Authorization": "Token nmhiuqk9owpotpjmexexcd8d4u405dojp9irp3ks"}
+                self.env_values["URL_WEBSHARE"],
+                headers={"authorization": self.env_values["TOKEN_WEBSHARE"]}
                 ).json()["results"]
                 result = []
                 
