@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from components.ProxyGenerate.getProxy import ProxyRequest
+# from components.ProxyGenerate.getProxy import ProxyRequest
 
 class PlayEssencial:
     def __init__(self, url=None):
