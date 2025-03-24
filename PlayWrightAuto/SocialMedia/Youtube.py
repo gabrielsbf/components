@@ -1,14 +1,14 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
-import pandas as pd
+from components.Sheets_Manager.module.sheets_manager import Sheets_Manager
 from datetime import datetime
 import locale
 
 
-class Youtube_Automation(PlayEssencial):
+class Youtube_Automation(PlayEssencial, Sheets_Manager):
     def __init__(self):
         super().__init__("https://www.youtube.com/")
     
-    def get_href(self):
+    def get_href(self, quantity):
         if not self.page:
                 raise Exception("Browser or page not initialized. Call start_browser() first.")
         self.set_url(self.current_url + 'PrefeituradeNiter%C3%B3iOficial/videos')
@@ -16,8 +16,7 @@ class Youtube_Automation(PlayEssencial):
         self.page.wait_for_selector('//div[@class="style-scope ytd-rich-grid-renderer"]//a[@id="video-title-link"]')
         links = self.page.locator('//div[@class="style-scope ytd-rich-grid-renderer"]//a[@id="video-title-link"]')
         video_list = []
-        for i in range(2):
-                print('entrei no for')
+        for i in range(quantity):
                 href = links.nth(i).get_attribute("href")
                 name = links.nth(i).inner_text()
                 video_list.append({'link' : "https://www.youtube.com" + href, 'name' : name})
@@ -37,8 +36,7 @@ class Youtube_Automation(PlayEssencial):
             date = list(filter(lambda x: x not in remove, date))
             locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
             date = " ".join(date).replace(".", "")
-            print(date)
-            href["date"] = datetime.strptime(date, "%d %b %Y")
+            href["date"] = datetime.strptime(date, "%d %b %Y").strftime("%d/%m/%Y")
         return videos_data
     
     def standard_procedure(self):
@@ -47,7 +45,3 @@ class Youtube_Automation(PlayEssencial):
         self.stop_browser()
         return data
     
-    def save_data(self):
-        data = self.standard_procedure()
-        df = pd.DataFrame(data)
-        print(df)
