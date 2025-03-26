@@ -21,7 +21,7 @@ class Youtube_Automation(PlayEssencial, Sheets_Manager):
       
     
     def get_data(self, initial_data = None, final_data = None):
-        all_videos = []
+        all_videos = {}
         for video in self.get_href():
             self.set_url(video['href'])
             self.page.goto(self.current_url, timeout=30000)
@@ -36,10 +36,11 @@ class Youtube_Automation(PlayEssencial, Sheets_Manager):
             date = " ".join(date).replace(".", "")
             extract_date = datetime.strptime(date, "%d %b %Y")
             if extract_date > datetime.strptime(initial_data, "%d/%m/%Y") and extract_date < datetime.strptime(final_data, "%d/%m/%Y") :
-                all_videos.append({"title": video['title'], "href": video['href'], "date": extract_date.strftime("%d/%m/%Y")})
+                all_videos[video['href']] = {"title": video['title'], "date": extract_date.strftime("%d/%m/%Y")}
                 print('passei no if')
                 continue
             break
+        print(all_videos)
         return all_videos
     
     def standard_procedure(self):
