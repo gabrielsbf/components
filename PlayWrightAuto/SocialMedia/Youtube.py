@@ -1,10 +1,9 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
-from components.Sheets_Manager.module.sheets_manager import Sheets_Manager
 from datetime import datetime
 import locale
 
 
-class Youtube_Automation(PlayEssencial, Sheets_Manager):
+class Youtube_Automation(PlayEssencial):
     def __init__(self):
         super().__init__("https://www.youtube.com/")
     
