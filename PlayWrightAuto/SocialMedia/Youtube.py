@@ -8,7 +8,6 @@ class Youtube_Automation(PlayEssencial):
         super().__init__("https://www.youtube.com/")
     
     def get_href(self):
-        print("passei no get_href")
         if not self.page:
                 raise Exception("Browser or page not initialized. Call start_browser() first.")
         self.set_url(self.current_url + 'PrefeituradeNiter%C3%B3iOficial/videos')
@@ -36,10 +35,8 @@ class Youtube_Automation(PlayEssencial):
             extract_date = datetime.strptime(date, "%d %b %Y")
             if extract_date > datetime.strptime(initial_data, "%d/%m/%Y") and extract_date < datetime.strptime(final_data, "%d/%m/%Y") :
                 all_videos[video['href']] = {"title": video['title'], "date": extract_date.strftime("%d/%m/%Y")}
-                print('passei no if')
                 continue
             break
-        print(all_videos)
         return all_videos
     
     def standard_procedure(self):
