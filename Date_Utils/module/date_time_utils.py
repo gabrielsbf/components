@@ -101,10 +101,12 @@ class Date_Utils:
 				try:
 					if type(start_date) == str and len(start_date) <= 10:
 						start_date = ' '.join([start_date, "00:00:00"])
-						start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y %H:%M:%S")
 					if type(final_date) == str and len(final_date) <= 10:
 						final_date = ' '.join([final_date, "23:59:59"])
-						final_date = datetime.datetime.strptime(final_date, "%d/%m/%Y %H:%M:%S")	
+					if type(final_date) == str:
+						final_date = datetime.datetime.strptime(final_date, "%d/%m/%Y %H:%M:%S")
+					if type(start_date) == str:
+						start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y %H:%M:%S")
 				except:
 					print("Alguma das datas é inválida, favor tentar novamente!")
 					self.date_optional = None
