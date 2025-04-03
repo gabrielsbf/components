@@ -22,4 +22,5 @@ class PlayEssencial:
         
     def stop_browser(self):
         if self.browser:
+            input()
             self.browser.close()
