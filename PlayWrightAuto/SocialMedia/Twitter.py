@@ -90,6 +90,6 @@ class Twitter_Automation(PlayEssencial):
         # print(time_values)
 
     def standard_procedure(self):
-        self.start_browser()
+        self.start_browser_user()
         data = self.get_href('01/03/2025', '31/03/2025' )
         self.stop_browser()
