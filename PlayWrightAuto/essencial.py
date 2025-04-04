@@ -1,5 +1,4 @@
-from playwright.sync_api import sync_playwright
-from playwright.async_api import async_playwright
+from playwright.sync_api import sync_playwright, expect
 
 
 # from components.ProxyGenerate.getProxy import ProxyRequest
@@ -33,9 +32,6 @@ class PlayEssencial:
             executable_path="C:/Program Files/Google/Chrome/Application/chrome.exe"
         )
         self.page = self.browser.new_page()
-            # page.goto('https://www.threads.net')
-            # input("Pressione Enter para fechar...")
-            # browser.close()
         
     def stop_browser(self):
         if self.browser:
