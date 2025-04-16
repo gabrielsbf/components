@@ -1,13 +1,16 @@
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import sync_playwright
+from utils.read_env import *
 
 
 # from components.ProxyGenerate.getProxy import ProxyRequest
 
 class PlayEssencial:
-    def __init__(self, url=None, browser=None, page=None):
+    def __init__(self, url=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
         self.current_url = url
         self.browser = None if browser == None else browser
         self.page = None if page == None else page
+        self.browser_data_path = browser_data_path
+        self.chrome_executable_path = chrome_executable_path
 
     def set_url(self, url):
         if url == None:
@@ -15,21 +18,19 @@ class PlayEssencial:
         self.current_url = url
         print(f"{self.current_url} was set as current URL")
         return url
-    
-
+   
     def start_browser(self):
         playwright = sync_playwright().start()
         self.browser = playwright.chromium.launch(headless=False)  # Set headless=True to run without UI
         self.page = self.browser.new_page()
     
     def start_browser_user(self):
-        chrome_profile_path = "C:/Users/Alex_/AppData/Local/Google/Chrome/User Data"
         playwright = sync_playwright().start()
 
         self.browser = playwright.chromium.launch_persistent_context(
-            user_data_dir= chrome_profile_path,
+            user_data_dir= self.browser_data_path,
             headless=False,
-            executable_path="C:/Program Files/Google/Chrome/Application/chrome.exe"
+            executable_path= self.chrome_executable_path,
         )
         self.page = self.browser.new_page()
         
