@@ -43,7 +43,6 @@ class Youtube_Automation(PlayEssencial):
             "x-client-data": "CIi2yQEIo7bJAQipncoBCKP3ygEIk6HLAQiJo8sBCJ3+zAEIhaDNAQj9284BCK/kzgEIl+bOAQjv5s4BGODizgEYm+fOAQ=="
         }
 
-    
     def get_video_content(self):
         video_info = []
         print("passei no get_href")
@@ -86,7 +85,6 @@ class Youtube_Automation(PlayEssencial):
                 print('passei no if')
                 continue
             break
-        print(all_videos)
         return all_videos
     
     def get_data_new(self, start_date=None, end_date=None):

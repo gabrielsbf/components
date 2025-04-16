@@ -11,7 +11,6 @@ class Tiktok_Automation(PlayEssencial):
 			# "path": "/@niteroipref/video/7485850635112385847",
 			"scheme": "https",
 			"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-
 			"accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
 			"cache-control": "max-age=0",
 			"priority": "u=0, i",
@@ -27,12 +26,12 @@ class Tiktok_Automation(PlayEssencial):
 	}
 
 	def iterate_video_links(self, result_info: dict):
-		for key, _ in result_info.items():
+		for key in list(result_info.keys()):
 			yield key
 
 	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):
 		print(f"Status Code: {response.status_code}")
-		# print(f"Response is: {response.text}")
+
 		findResp = response.text.find("webapp.video-detail") - 1
 		if findResp <= -1:
 			print("not found")
@@ -42,7 +41,6 @@ class Tiktok_Automation(PlayEssencial):
 			end = response.text[begin:].find(",") + begin
 			result = response.text[begin:end]
 			result = int(str(result.replace('"', '')).removeprefix("createTime:"))
-			print(result)
 			processed_date = datetime.datetime.fromtimestamp(result)
 			print(processed_date)
 			if processed_date < start_date:
@@ -80,11 +78,8 @@ class Tiktok_Automation(PlayEssencial):
 				raise Exception("Browser or page not initialized. Call start_browser() first.")
 			self.page.goto(self.current_url, timeout=30000)
 			input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
-	  
 			self.page.wait_for_load_state("domcontentloaded",timeout=30000)
-
 			self.page.wait_for_selector("//div[@id='main-content-others_homepage']")
-
 			feed = self.page.locator("//div[@id='main-content-others_homepage']")
 			items = feed.locator('//div[@class="css-1uqux2o-DivItemContainerV2 e19c29qe7"]')
 			views = self.page.locator('//div[@class="css-1qb12g8-DivThreeColumnContainer eegew6e2"]//strong[@class="video-count css-dirst9-StrongVideoCount e148ts222"]')
@@ -101,4 +96,5 @@ class Tiktok_Automation(PlayEssencial):
 		print("FEED DATA -> ", data)
 		value = self.access_videos(data, dates[0], dates[1])
 		return value
+
 		#  print(data)
