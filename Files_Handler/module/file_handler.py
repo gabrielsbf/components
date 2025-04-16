@@ -1,5 +1,6 @@
 import os
 import json
+from pathlib import Path
 
 class Files_Handling():
 	"""
@@ -47,11 +48,11 @@ class Files_Handling():
 			folder = self.pattern_folder
 		format = filename.split('.')[-1]
 		if format == 'json':
-			file = open(folder + filename, "w", encoding="UTF-8")
+			file = open(Path(folder,filename).resolve(), "w", encoding="UTF-8")
 			json.dump(input, file)
 			file.close()
 		else: 
-			with open(self, folder + filename, "w", encoding="UTF-8") as file:
+			with open(Path(folder,filename).resolve(), "w", encoding="UTF-8") as file:
 				file.write(input)
 				file.close()
 
@@ -71,7 +72,7 @@ class Files_Handling():
 		else:
 			folder = self.pattern_folder
 		format = filename.split('.')[-1]
-		with open(folder + filename, 'r', encoding='UTF-8') as file:
+		with open(Path(folder,filename).resolve(), 'r', encoding='UTF-8') as file:
 			data = file.read()
 		if format == 'json':
 			return json.loads(data)

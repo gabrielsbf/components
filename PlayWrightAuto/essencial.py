@@ -5,10 +5,10 @@ from utils.read_env import *
 # from components.ProxyGenerate.getProxy import ProxyRequest
 
 class PlayEssencial:
-    def __init__(self, url=None, browser_data_path=None, chrome_executable_path=None):
+    def __init__(self, url=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
         self.current_url = url
-        self.browser = None
-        self.page = None
+        self.browser = None if browser == None else browser
+        self.page = None if page == None else page
         self.browser_data_path = browser_data_path
         self.chrome_executable_path = chrome_executable_path
 
@@ -18,8 +18,7 @@ class PlayEssencial:
         self.current_url = url
         print(f"{self.current_url} was set as current URL")
         return url
-    
-
+   
     def start_browser(self):
         playwright = sync_playwright().start()
         self.browser = playwright.chromium.launch(headless=False)  # Set headless=True to run without UI
