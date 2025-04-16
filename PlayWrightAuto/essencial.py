@@ -4,10 +4,10 @@ from playwright.sync_api import sync_playwright, expect
 # from components.ProxyGenerate.getProxy import ProxyRequest
 
 class PlayEssencial:
-    def __init__(self, url=None):
+    def __init__(self, url=None, browser=None, page=None):
         self.current_url = url
-        self.browser = None
-        self.page = None
+        self.browser = None if browser == None else browser
+        self.page = None if page == None else page
 
     def set_url(self, url):
         if url == None:
