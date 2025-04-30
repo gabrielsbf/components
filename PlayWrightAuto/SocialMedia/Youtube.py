@@ -5,10 +5,9 @@ import requests
 
 
 class Youtube_Automation(PlayEssencial):
-    def __init__(self, account, browser=None, page=None):
-        super().__init__("https://www.youtube.com/", browser, page)
+    def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
+        super().__init__("https://www.youtube.com/", playwright, browser_data_path, chrome_executable_path, browser, page)
         self.account = account
-
         self.headers = {
             "authority": "www.youtube.com",
             "method": "GET",
