@@ -4,11 +4,11 @@ from datetime import datetime, timezone
 
 
 class Threads_Automation(PlayEssencial):
-    def __init__(self, account, browser_data_path=None, chrome_executable_path=None):
+    def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
         self.account = account
-        super().__init__(f'www.threads.net/{self.account}', browser_data_path, chrome_executable_path)
+        super().__init__(f'https://www.threads.net/{self.account}', playwright, browser_data_path, chrome_executable_path, browser, page)
 
-    def get_href(self, since: str, until: str):
+    def get_href(self, since: str | datetime, until: str | datetime):
         if not self.page:
             raise Exception("Browser or page not initialized. Call start_browser() first.")
         
@@ -21,11 +21,11 @@ class Threads_Automation(PlayEssencial):
         
         count = feed.count()
         # print(f"Total de posts encontrados: {count}")
-        since =  datetime.strptime(since, "%d/%m/%Y").replace(tzinfo=timezone.utc)
-        until =  datetime.strptime(until, "%d/%m/%Y").replace(tzinfo=timezone.utc).replace(hour=23, minute=59, second=59)
+        since = since if type(since) == datetime else datetime.strptime(since, "%d/%m/%Y")
+        until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
         # print("since is", until)
 
-        last_date = datetime.now(timezone.utc)  
+        last_date = datetime.now()  
         links_filtrados = []
         # datas = []
         while last_date >= since:
@@ -37,7 +37,7 @@ class Threads_Automation(PlayEssencial):
             access_date = last_post.locator('//div[@class="x78zum5 x1c4vz4f x2lah0s"]//a[@class="x1i10hfl xjbqb8w x1ejq31n xd10rxx x1sy0etr x17r0tee x972fbf xcfux6l x1qhh985 xm0m39n x9f619 x1ypdohk xt0psk2 xe8uvvx xdj266r x11i5rnm xat24cr x1mh8g0r xexx8yu x4uap5 x18d9i69 xkhd6sd x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x1lku1pv x12rw4y6 xrkepyr x1citr7e x37wo2f"]')
             last_datetime_str = access_date.locator("time").get_attribute("datetime")
             if last_datetime_str:
-                    last_date = datetime.fromisoformat(last_datetime_str.replace("Z", "+00:00"))
+                    last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                     if last_date < since:
                         break
         posts = feed.locator('//div[@class="xrvj5dj xd0jker x1evr45z"]')
@@ -57,7 +57,7 @@ class Threads_Automation(PlayEssencial):
             last_datetime_str = access_date.locator("time").get_attribute("datetime")
             # print(">>>>>>>>>>>>>>>>", desc[:-9])
             if last_datetime_str:
-                last_date = datetime.fromisoformat(last_datetime_str.replace("Z", "+00:00"))
+                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                 # print(f"Data encontrada: {last_date}")
                 if since <= last_date <= until:
                     link_href = access_date.get_attribute("href")
