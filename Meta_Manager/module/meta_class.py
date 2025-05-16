@@ -153,10 +153,10 @@ class Social_Manager(Date_Utils):
 			# print("Entering in loop While")
 			new_request = requests.get(next_page)
 			newJson_file = new_request.json()
-			dataFile =list(newJson_file["data"])
+			dataFile = list(newJson_file["data"])
 			# print(f"Data File to Append: \n type: {type(dataFile)}, \n texto: {dataFile}")
 			# print("File JSON Data new", dataFile)
-			description_data =  description_data.extend(dataFile)
+			description_data.extend(dataFile)
 			print(f"Description Data File: \n type: {type(description_data)}, \n texto: {description_data}")
 			try:
 				next_page = newJson_file["paging"]["next"]
