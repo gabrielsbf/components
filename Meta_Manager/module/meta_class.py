@@ -156,14 +156,14 @@ class Social_Manager(Date_Utils):
 			dataFile =list(newJson_file["data"])
 			# print(f"Data File to Append: \n type: {type(dataFile)}, \n texto: {dataFile}")
 			# print("File JSON Data new", dataFile)
-			description_data =  description_data + dataFile
+			description_data =  description_data.extend(dataFile)
 			print(f"Description Data File: \n type: {type(description_data)}, \n texto: {description_data}")
 			try:
 				next_page = newJson_file["paging"]["next"]
 			except:
 				next_page = 0
 				#print("Entering in except")
-
+		print("LEN IN THIS IS: ",len(description_data))
 		def new_key(value):
 			new_dict = {}
 			print("value is:", value)
@@ -176,7 +176,7 @@ class Social_Manager(Date_Utils):
 			return new_dict
 
 		new_desc = list(map(new_key, description_data))
-		print(new_desc)
+		print("TAMANHO LEN", len(new_desc))
 		return [new_desc, date_obj]
 
 	def face_post_unique_metrics(self, data_obj):

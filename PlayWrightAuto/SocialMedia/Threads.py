@@ -26,7 +26,7 @@ class Threads_Automation(PlayEssencial):
         # print("since is", until)
 
         last_date = datetime.now()  
-        links_filtrados = []
+        links_filtrados = {}
         # datas = []
         while last_date >= since:
             self.page.mouse.wheel(0, 1000)
@@ -61,7 +61,7 @@ class Threads_Automation(PlayEssencial):
                 # print(f"Data encontrada: {last_date}")
                 if since <= last_date <= until:
                     link_href = access_date.get_attribute("href")
-                    links_filtrados.append(({link_href : {'Descrição' :  desc[:-9], 'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S")}}))
+                    links_filtrados.update({"".join(["https://www.threads.net",link_href]) : {'Descrição' :  desc[:-9], 'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S")}})
                     # datas.append(last_date.strftime("%d/%m/%Y %H:%M:%S"))
                     # print(f"Link adicionado: {link_href}")
                 

@@ -44,5 +44,5 @@ class PlayEssencial:
         
     def stop_browser(self):
         if self.browser:
-            input()
+            input("ESSA EXECUÇÃO FOI FINALIZADA, aperte ENTER para continuar.")
             self.browser.close()

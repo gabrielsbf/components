@@ -31,7 +31,7 @@ class Tiktok_Automation(PlayEssencial):
 
 	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):
 		print(f"Status Code: {response.status_code}")
-
+		print("RESPONSE IS :", response.text)
 		findResp = response.text.find("webapp.video-detail") - 1
 		if findResp <= -1:
 			print("not found")
@@ -50,6 +50,7 @@ class Tiktok_Automation(PlayEssencial):
 			else:
 				result_info[self.current_url]["date_created"] = datetime.datetime.fromtimestamp(int(result)).strftime("%d/%m/%Y %H:%M:%S")
 				return (self.current_url)
+		print("DATE REVELATED IS: ", result_info[self.current_url]["date_created"])
 		return(self.current_url)
 		
 
@@ -60,9 +61,7 @@ class Tiktok_Automation(PlayEssencial):
 		for link in self.iterate_video_links(result_info):
 			print('entrei')
 			self.set_url(link)
-			element_vid = self.get_request_createdTime(requests.get(self.
-			current_url, headers=self.headers), result_info, start_date, end_date)
-			print("ALL VIDEOS ARE: ", all_videos)
+			element_vid = self.get_request_createdTime(requests.get(self.current_url, headers=self.headers), result_info, start_date, end_date)
 			if (element_vid != 0 and element_vid != 1):
 				all_videos.append(element_vid)
 			if (element_vid == 0 and counter > 3):
