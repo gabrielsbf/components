@@ -26,7 +26,7 @@ class Selenium_Manager(Date_Utils):
 		self.options = webdriver.ChromeOptions()
 		chrome_install = ChromeDriverManager().install()
 		folder = os.path.dirname(chrome_install)
-		chromedriver_path = os.path.join(folder, "chromedriver.exe")
+		chromedriver_path = os.path.join(folder, "chromedriver")
 		self.s = Service(chromedriver_path)
 		if remote_connection == False:
 			self.options.add_argument(f"--user-data-dir={chrome_data_path}")
