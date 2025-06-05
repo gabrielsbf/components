@@ -22,17 +22,28 @@ class Tiktok_Automation(PlayEssencial):
 			"sec-fetch-site": "same-origin",
 			"sec-fetch-user": "?1",
 			"upgrade-insecure-requests": "1",
-			"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+			"user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 	}
 
 	def iterate_video_links(self, result_info: dict):
 		for key in list(result_info.keys()):
 			yield key
-
-	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):
-		print(f"Status Code: {response.status_code}")
-
+	def requests_seletion(self, response, find_term, result_info, configs : str):
 		findResp = response.text.find("webapp.video-detail") - 1
+		if findResp <= -1:
+			print("not found")
+			result_info[self.current_url]["date_created"] = "notFound"
+		else:
+			begin = response.text.find(find_term)
+			end = response.text[begin:].find(configs) + begin
+			result = response.text[begin:end]
+			result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
+
+	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):		
+		print(f"Status Code: {response.status_code}")
+		# findResp = response.text.find("webapp.video-detail") - 1
+		findResp = response.text.find("webapp.video-detail") - 1
+
 		if findResp <= -1:
 			print("not found")
 			result_info[self.current_url]["date_created"] = "notFound"
@@ -84,14 +95,16 @@ class Tiktok_Automation(PlayEssencial):
 			items = feed.locator('//div[@class="css-1uqux2o-DivItemContainerV2 e19c29qe7"]')
 			views = self.page.locator('//div[@class="css-1qb12g8-DivThreeColumnContainer eegew6e2"]//strong[@class="video-count css-dirst9-StrongVideoCount e148ts222"]')
 			count = items.count()
+			input()
 			for i in range(count):
 				item = items.nth(i)
 				result_info[item.locator("a").get_attribute("href")] = {"description": item.locator("img").get_attribute("alt"), 'views' : views.nth(i).inner_text()}
+				print(result_info)
 			return result_info
 
 	def standard_procedure(self, dates: list):
 		if self.browser == None: 
-			self.start_browser()
+			self.start_browser_user()
 		data = self.get_feed_info()
 		print("FEED DATA -> ", data)
 		value = self.access_videos(data, dates[0], dates[1])

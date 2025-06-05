@@ -36,7 +36,9 @@ class Twitter_Automation(PlayEssencial):
             last_datetime_str = access_date.locator("time").get_attribute("datetime")
             for i in range(count):
                 post = posts.nth(i)
-                access_desc = post.locator("//div[@class='css-175oi2r r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu']//div[@class='css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-bnwqim']")
+                full_post = "//div[@class='css-175oi2r r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu']"
+                access_metrics = post.locator("//div[@class='css-175oi2r r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu']//div[@class='css-175oi2r r-18u37iz r-1h0z5md r-13awgt0']").all_inner_texts()
+                access_desc = post.locator(f"{full_post}//div[@class='css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-bnwqim']")
                 all_desc = access_desc.all()
                 post_descs = "".join([desc.inner_text().replace("\n", "") for desc in all_desc])
                 access_date = post.locator('//a[@class="css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-xoduu5 r-1q142lx r-1w6e6rj r-9aw3ui r-3s2u2q r-1loqt21"]')
@@ -48,7 +50,13 @@ class Twitter_Automation(PlayEssencial):
                     if last_datetime_str:
                         last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                         if since <= last_date <= until:
-                            links_filtrados.append(({get_href : {'Descrição' : post_descs, 'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S")}}))
+                            links_filtrados.append(({get_href : 
+                                                     {'Descrição' : post_descs, 
+                                                      'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S"), 
+                                                      'Comentários' : access_metrics[0] if access_metrics[0] != '' else 0 , 
+                                                      'Compartilhamentos' :  access_metrics[1] if access_metrics[1] != '' else 0, 
+                                                      'Curtidas' :  access_metrics[2] if access_metrics[2] != '' else 0, 
+                                                      'Visualizações' :  access_metrics[3] if access_metrics[3] != '' else 0}}))
                             print(f"Link adicionado: {get_href}")
                                     
                         elif last_date < since:

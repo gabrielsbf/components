@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from utils.read_env import *
+# from utils.read_env import *
 
 
 # from components.ProxyGenerate.getProxy import ProxyRequest
