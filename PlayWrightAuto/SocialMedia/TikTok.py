@@ -1,6 +1,7 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
 import requests
 import datetime
+import re
 
 class Tiktok_Automation(PlayEssencial):
 	def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -28,22 +29,29 @@ class Tiktok_Automation(PlayEssencial):
 	def iterate_video_links(self, result_info: dict):
 		for key in list(result_info.keys()):
 			yield key
-	def requests_seletion(self, response, find_term, result_info, configs : str):
-		findResp = response.text.find("webapp.video-detail") - 1
-		if findResp <= -1:
-			print("not found")
-			result_info[self.current_url]["date_created"] = "notFound"
-		else:
+
+	def requests_seletion(self, response, find_term, configs : str):
+		begin = response.text.find(find_term)
+
+		end = response.text[begin:].find(configs) + begin
+		result = response.text[begin:end]
+		print(result)
+		result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
+
+		result = re.findall(r'\d+', result)
+
+		return result
+
+	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):
+		def requests_seletion(response, find_term, configs : str):
 			begin = response.text.find(find_term)
 			end = response.text[begin:].find(configs) + begin
 			result = response.text[begin:end]
 			result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
-
-	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):		
+			result = re.findall(r'\d+', result)
+			return result		
 		print(f"Status Code: {response.status_code}")
-		# findResp = response.text.find("webapp.video-detail") - 1
 		findResp = response.text.find("webapp.video-detail") - 1
-
 		if findResp <= -1:
 			print("not found")
 			result_info[self.current_url]["date_created"] = "notFound"
@@ -58,8 +66,16 @@ class Tiktok_Automation(PlayEssencial):
 				return (0)
 			if processed_date > end_date:
 				return (1)
+			
 			else:
+				interactions = requests_seletion(response, '"statsV2":', '}')
 				result_info[self.current_url]["date_created"] = datetime.datetime.fromtimestamp(int(result)).strftime("%d/%m/%Y %H:%M:%S")
+				result_info[self.current_url]["curtidas"] = interactions[0] if len(interactions) != 0 else "notFound"
+				result_info[self.current_url]["compartilhamentos"] = interactions[1] if len(interactions) != 0 else "notFound"
+				result_info[self.current_url]["comentários"] = interactions[2] if len(interactions) != 0 else "notFound"
+				result_info[self.current_url]["reproduções"] = interactions[3] if len(interactions) != 0 else "notFound"
+				result_info[self.current_url]["salvos"] = interactions[4] if len(interactions) != 0 else "notFound"
+				result_info[self.current_url]["repostado"] = interactions[5] if len(interactions) != 0 else "notFound"
 				return (self.current_url)
 		return(self.current_url)
 		
@@ -71,8 +87,12 @@ class Tiktok_Automation(PlayEssencial):
 		for link in self.iterate_video_links(result_info):
 			print('entrei')
 			self.set_url(link)
-			element_vid = self.get_request_createdTime(requests.get(self.
-			current_url, headers=self.headers), result_info, start_date, end_date)
+			response = requests.get(self.current_url, headers=self.headers)
+			element_vid = self.get_request_createdTime(response, result_info, start_date, end_date)
+			element = self.requests_seletion(response, '"statsV2":', '}')
+
+
+			print("elements is >>>", element)
 			print("ALL VIDEOS ARE: ", all_videos)
 			if (element_vid != 0 and element_vid != 1):
 				all_videos.append(element_vid)
@@ -108,6 +128,7 @@ class Tiktok_Automation(PlayEssencial):
 		data = self.get_feed_info()
 		print("FEED DATA -> ", data)
 		value = self.access_videos(data, dates[0], dates[1])
+		print(value)
 		return value
 
 		#  print(data)

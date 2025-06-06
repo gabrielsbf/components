@@ -64,7 +64,7 @@ class Youtube_Automation(PlayEssencial):
             yield {"title": title, "href": href}
 
     def scrape_videos_by_date(self, start_date :  datetime, end_date : datetime):
-        all_videos = {}
+        filtered_videos = {}
         def requests_seletion(response, find_term, configs : str):
             if type(find_term) == list:
                 find_term = find_term[0] if response.text.find(find_term[0]) != -1 else find_term[1]
@@ -81,43 +81,28 @@ class Youtube_Automation(PlayEssencial):
             return result
         for video in self.get_video_content():
             self.set_url(video['href'])
+            print()
             response = requests.get(self.current_url, headers=self.headers)
             processed_date = requests_seletion(response, list(['"startTimestamp":', '"uploadDate":']), ",")
-            processed_date = datetime.fromisoformat(processed_date[0:-6])
-            processed_date = processed_date.strftime('%d/%m/%Y')
+            processed_date = datetime.fromisoformat(processed_date.strip().strip('}')).replace(tzinfo=None)
             comments = requests_seletion(response, '"contextualInfo":', ",")
             likes = requests_seletion(response, '"likeCount":', ",")
             views = requests_seletion(response, '"views":', ",")
             comments = re.findall(r"\d+", comments)
             views = re.findall(r"\d+(?:[\.,]\d+)?", views)
-            # findTerm = '"startTimestamp":' if response.text.find('"startTimestamp":') != -1 else '"uploadDate":'
-            # like_count = response.text.find('"likeCount":')
-            # end_like = response.text[like_count:].find(",") + like_count
-            # likes = response.text[like_count:end_like]
-            # print(">>>>>>>> LIKES", likes)
-            # comments = response.text.find('"contextualInfo":')
-
-            # print("FIND TERM IS:" , findTerm)
-            # begin = response.text.find(findTerm)
-            # end = response.text[begin:].find(",") + begin
-            # result = response.text[begin:end]
-            # print(f"begin: {begin} end: {end} RESULT IS: ", result)
-            # date = str(date.replace('"', '')).removeprefix(findTerm.replace('"', ''))
-            # print("Result", result)
-            # processed_date = datetime.fromisoformat(result[0:-6])
-            # processed_date = processed_date.strftime('%d/%m/%Y')
-            # print("processed", processed_date)
-            # end_date = datetime.fromisoformat(end_date)
-            # print("end date", end_date)
-            # print("start date", start_date)
-            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", likes, comments, processed_date)
+            if processed_date > end_date:
+                continue
             if processed_date < start_date:
                 break
-            all_videos[video['href']] = {"title": video['title'], "date": processed_date, 'likes' : likes, "comments" : comments[0] if comments != [] else 0, "views" : views[0] if views != [] else 0}
-                
-
-        print("Videos >>>", all_videos)
-        return all_videos
+            filtered_videos[video['href']] = {"title": video['title'], 
+                                         "date": processed_date, 
+                                         "likes" : likes, 
+                                         "comments" : comments[0] if comments != [] else 0, 
+                                         "views" : views[0] if views != [] else 0
+            }             
+        print("Total de vídeos filtrados:", len(filtered_videos))
+        print(filtered_videos)
+        return filtered_videos
 
     def standard_procedure(self, dates: list):
         if self.browser == None: 
@@ -126,6 +111,15 @@ class Youtube_Automation(PlayEssencial):
         # self.stop_browser()
         return data
     
+
+
+
+
+
+
+
+
+
 
 
 # //button[@class="yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading yt-spec-button-shape-next--segmented-start yt-spec-button-shape-next--enable-backdrop-filter-experiment"]//div[@class="yt-spec-button-shape-next__button-text-content"]
@@ -153,3 +147,26 @@ class Youtube_Automation(PlayEssencial):
     #             continue
     #         break
     #     return all_videos
+
+
+
+    # findTerm = '"startTimestamp":' if response.text.find('"startTimestamp":') != -1 else '"uploadDate":'
+            # like_count = response.text.find('"likeCount":')
+            # end_like = response.text[like_count:].find(",") + like_count
+            # likes = response.text[like_count:end_like]
+            # print(">>>>>>>> LIKES", likes)
+            # comments = response.text.find('"contextualInfo":')
+
+            # print("FIND TERM IS:" , findTerm)
+            # begin = response.text.find(findTerm)
+            # end = response.text[begin:].find(",") + begin
+            # result = response.text[begin:end]
+            # print(f"begin: {begin} end: {end} RESULT IS: ", result)
+            # date = str(date.replace('"', '')).removeprefix(findTerm.replace('"', ''))
+            # print("Result", result)
+            # processed_date = datetime.fromisoformat(result[0:-6])
+            # processed_date = processed_date.strftime('%d/%m/%Y')
+            # print("processed", processed_date)
+            # end_date = datetime.fromisoformat(end_date)
+            # print("end date", end_date)
+            # print("start date", start_date)
