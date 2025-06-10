@@ -32,14 +32,11 @@ class Tiktok_Automation(PlayEssencial):
 
 	def requests_seletion(self, response, find_term, configs : str):
 		begin = response.text.find(find_term)
-
 		end = response.text[begin:].find(configs) + begin
 		result = response.text[begin:end]
 		print(result)
 		result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
-
 		result = re.findall(r'\d+', result)
-
 		return result
 
 	def get_request_createdTime(self, response, result_info: dict, start_date, end_date):
@@ -66,17 +63,14 @@ class Tiktok_Automation(PlayEssencial):
 				return (0)
 			if processed_date > end_date:
 				return (1)
-			
-			else:
-				interactions = requests_seletion(response, '"statsV2":', '}')
-				result_info[self.current_url]["date_created"] = datetime.datetime.fromtimestamp(int(result)).strftime("%d/%m/%Y %H:%M:%S")
-				result_info[self.current_url]["curtidas"] = interactions[0] if len(interactions) != 0 else "notFound"
-				result_info[self.current_url]["compartilhamentos"] = interactions[1] if len(interactions) != 0 else "notFound"
-				result_info[self.current_url]["comentários"] = interactions[2] if len(interactions) != 0 else "notFound"
-				result_info[self.current_url]["reproduções"] = interactions[3] if len(interactions) != 0 else "notFound"
-				result_info[self.current_url]["salvos"] = interactions[4] if len(interactions) != 0 else "notFound"
-				result_info[self.current_url]["repostado"] = interactions[5] if len(interactions) != 0 else "notFound"
-				return (self.current_url)
+			result_info[self.current_url]["date_created"] = datetime.datetime.fromtimestamp(int(result)).strftime("%d/%m/%Y %H:%M:%S")
+		interactions = requests_seletion(response, '"statsV2":', '}')
+		result_info[self.current_url]["curtidas"] = interactions[0] if len(interactions) != 0 else "notFound"
+		result_info[self.current_url]["compartilhamentos"] = interactions[1] if len(interactions) != 0 else "notFound"
+		result_info[self.current_url]["comentários"] = interactions[2] if len(interactions) != 0 else "notFound"
+		result_info[self.current_url]["reproduções"] = interactions[3] if len(interactions) != 0 else "notFound"
+		result_info[self.current_url]["salvos"] = interactions[4] if len(interactions) != 0 else "notFound"
+		result_info[self.current_url]["repostado"] = interactions[5] if len(interactions) != 0 else "notFound"
 		return(self.current_url)
 		
 
@@ -87,11 +81,16 @@ class Tiktok_Automation(PlayEssencial):
 		for link in self.iterate_video_links(result_info):
 			print('entrei')
 			self.set_url(link)
+			link_splited = link.split('/')
+			print("link_splited is: ", link_splited)
+			# self.page.goto(self.current_url, timeout=30000)
+			# self.page.wait_for_load_state("domcontentloaded",timeout=30000)
+			# self.page.wait_for_selector("//button[@class='css-1ncfmqs-ButtonActionItem e1hk3hf90']")
+			# mertrics = self.page.locator("//button[@class='css-1ncfmqs-ButtonActionItem e1hk3hf90']//strong[@class='css-1w013xe-StrongText e1hk3hf92']").all_inner_texts()
+			# print("mertrics are: ", mertrics)
 			response = requests.get(self.current_url, headers=self.headers)
 			element_vid = self.get_request_createdTime(response, result_info, start_date, end_date)
 			element = self.requests_seletion(response, '"statsV2":', '}')
-
-
 			print("elements is >>>", element)
 			print("ALL VIDEOS ARE: ", all_videos)
 			if (element_vid != 0 and element_vid != 1):
@@ -99,7 +98,6 @@ class Tiktok_Automation(PlayEssencial):
 			if (element_vid == 0 and counter > 3):
 					break
 			counter += 1
-
 		filtered_result_info = {k: v for k, v in result_info.items() if k in all_videos}
 		return filtered_result_info
 	
