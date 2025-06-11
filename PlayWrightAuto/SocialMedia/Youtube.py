@@ -77,7 +77,6 @@ class Youtube_Automation(PlayEssencial):
             end = response.text[begin:].find(configs) + begin
             result = response.text[begin:end]
             result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
-
             return result
         for video in self.get_video_content():
             self.set_url(video['href'])
