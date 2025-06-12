@@ -23,37 +23,64 @@ class Twitter_Automation(PlayEssencial):
         until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
         last_date = datetime.now()  
         links_filtrados = []
-
+        previous_last_date = None
         while last_date >= since:
             self.page.mouse.wheel(0, 1000)
             self.page.wait_for_timeout(500)
+
             posts = feed.locator("//article")
             count = posts.count()
-            # print(f"Total de posts encontrados loop: {count}")
-            last_post = posts.nth(count -1)
-            # print("last_post is", last_post)
+            print(f"Total de posts encontrados loop: {count}")
+
+            if count == 0:
+                print("Nenhum post encontrado. Saindo do loop.")
+                break
+
+            last_post = posts.nth(count - 1)
             access_date = last_post.locator('//a[@class="css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-xoduu5 r-1q142lx r-1w6e6rj r-9aw3ui r-3s2u2q r-1loqt21"]')
             last_datetime_str = access_date.locator("time").get_attribute("datetime")
+
+            if last_datetime_str:
+                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
+                print("last_date atualizado:", last_date)
+            else:
+                print("Última data não encontrada. Saindo do loop.")
+                break
+
+            if last_date == previous_last_date:
+                print("A data do último post não mudou. Encerrando para evitar loop infinito.")
+                break
+
+            previous_last_date = last_date
+
             for i in range(count):
+                print(f"Analisando post {i+1} de {count}")
                 post = posts.nth(i)
+
                 access_desc = post.locator("//div[@class='css-175oi2r r-1iusvr4 r-16y2uox r-1777fci r-kzbkwu']//div[@class='css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-bnwqim']")
                 all_desc = access_desc.all()
                 post_descs = "".join([desc.inner_text().replace("\n", "") for desc in all_desc])
+
                 access_date = post.locator('//a[@class="css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-xoduu5 r-1q142lx r-1w6e6rj r-9aw3ui r-3s2u2q r-1loqt21"]')
                 get_href = access_date.get_attribute("href")
+
                 if get_href in [list(link.keys())[0] for link in links_filtrados]:
-                    print("ja existe")
+                    print("Já existe:", get_href)
                     continue
                 else:
-                    if last_datetime_str:
-                        last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-                        if since <= last_date <= until:
-                            links_filtrados.append(({get_href : {'Descrição' : post_descs, 'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S")}}))
-                            print(f"Link adicionado: {get_href}")
-                                    
-                        elif last_date < since:
-                            print("Ultima data menor que a data inicial", since, "Ultima data", last_date)
-                            break
+                    print("link novo:", get_href)
+                    if since <= last_date <= until:
+                        links_filtrados.append({
+                            get_href: {
+                                'Descrição': post_descs,
+                                'Data': last_date.strftime("%d/%m/%Y %H:%M:%S")
+                            }
+                        })
+                        print(f"Link adicionado: {get_href}")
+                    elif last_date < since:
+                        print("Última data menor que a data inicial:", since, "Última data:", last_date)
+                        break  # Sai do for
+
         print("Links filtrados:", links_filtrados)
         return links_filtrados
 
