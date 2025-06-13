@@ -1,9 +1,9 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
 from requests import Response
+from datetime import datetime
 from typing import Union, Generator
 import json
 import requests
-import datetime
 
 class Tiktok_Automation(PlayEssencial):
 	def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -101,7 +101,7 @@ class Tiktok_Automation(PlayEssencial):
 			end = response.text[start_index:].find(",") + start_index
 			result = response.text[start_index:end]
 			result = int(str(result.replace('"', '')).removeprefix("createTime:"))
-			processed_date = datetime.datetime.fromtimestamp(result)
+			processed_date = datetime.fromtimestamp(result)
 			print(processed_date)
 			if processed_date < start_date:
 				return (0)
@@ -110,12 +110,12 @@ class Tiktok_Automation(PlayEssencial):
 			response_data = self.extract_text_between(response, '"statsV2":', ',"warnInfo"')
 			stats = response_data.get('statsV2', {})
 			result_info[self.current_url].update({
-				"digg_count": int(stats.get("diggCount", "0")),
-				"share_count": int(stats.get("shareCount", "0")),
-				"comment_count": int(stats.get("commentCount", "0")),
-				"play_count": int(stats.get("playCount", "0")),
-				"collect_count": int(stats.get("collectCount", "0")),
-				"repost_count": int(stats.get("repostCount", "0"))
+				"digg_count": stats.get("diggCount", "0"),
+				"share_count": stats.get("shareCount", "0"),
+				"comment_count": stats.get("commentCount", "0"),
+				"play_count": stats.get("playCount", "0"),
+				"collect_count": stats.get("collectCount", "0"),
+				"repost_count": stats.get("repostCount", "0")
 				})		
 		return(self.current_url)
 		
@@ -168,7 +168,7 @@ class Tiktok_Automation(PlayEssencial):
 			print(result_info)
 		return result_info
 
-	def standard_procedure(self, dates: list[datetime:datetime])-> dict:
+	def standard_procedure(self, dates: list[datetime])-> dict:
 		"""
 			Standard procedure to access TikTok videos within a specified date range.
 			Args:

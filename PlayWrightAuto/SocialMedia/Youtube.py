@@ -1,6 +1,7 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
 from datetime import datetime
-import locale
+from typing import Generator
+from requests import Response
 import requests
 import re
 
@@ -42,10 +43,9 @@ class Youtube_Automation(PlayEssencial):
             "x-browser-year": "2025",
             "x-client-data": "CIi2yQEIo7bJAQipncoBCKP3ygEIk6HLAQiJo8sBCJ3+zAEIhaDNAQj9284BCK/kzgEIl+bOAQjv5s4BGODizgEYm+fOAQ=="
         }
-
-    def get_video_content(self):
+    def get_video_content(self)-> Generator[dict, None, None]:
         video_info = []
-        def extract_hrefs(url):
+        def extract_hrefs(url)-> None:
             self.set_url(url)
             self.page.goto(self.current_url, timeout=30000)
             input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
@@ -57,38 +57,42 @@ class Youtube_Automation(PlayEssencial):
             [video_info.append(info) for info in zip(hrefs, titles)]
         extract_hrefs(self.current_url + self.account + '/videos')
         extract_hrefs('https://www.youtube.com/c/'+ self.account + '/streams')
-        # Make video info ordered. So we can get the most recent video first, and make a break on the oldest
-        # self.page.close()
         print("VIDEO INFO IS:", video_info)
         for href, title in video_info:
             yield {"title": title, "href": href}
 
-    def scrape_videos_by_date(self, start_date :  datetime, end_date : datetime):
+    def scrape_videos_by_date(self, start_date :  datetime, end_date : datetime)-> dict:
         filtered_videos = {}
-        def requests_seletion(response, find_term, configs : str):
-            if type(find_term) == list:
-                find_term = find_term[0] if response.text.find(find_term[0]) != -1 else find_term[1]
-                begin = response.text.find(find_term)
-                end = response.text[begin:].find(configs) + begin
-                result = response.text[begin:end]
-                result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
-                return result
-            begin = response.text.find(find_term)
-            end = response.text[begin:].find(configs) + begin
-            result = response.text[begin:end]
-            result = str(result.replace('"', '')).removeprefix(find_term.replace('"', ''))
-            return result
+        def extract_text_between(response : Response, start_maker : str, end_maker : str)-> str:
+            if type(start_maker) == list:
+                start_maker = start_maker[0] if response.text.find(start_maker[0]) != -1 else start_maker[1]
+                start_index = response.text.find(start_maker)
+                end_index = response.text[start_index:].find(end_maker) + start_index
+                snippet = response.text[start_index:end_index]
+                snippet = str(snippet.replace('"', '')).removeprefix(start_maker.replace('"', ''))
+                return snippet
+            start_index = response.text.find(start_maker)
+            end_index = response.text[start_index:].find(end_maker) + start_index
+            snippet = response.text[start_index:end_index]
+            snippet = str(snippet.replace('"', '')).removeprefix(start_maker.replace('"', ''))
+            return snippet
         for video in self.get_video_content():
             self.set_url(video['href'])
-            print()
             response = requests.get(self.current_url, headers=self.headers)
-            processed_date = requests_seletion(response, list(['"startTimestamp":', '"uploadDate":']), ",")
-            processed_date = datetime.fromisoformat(processed_date.strip().strip('}')).replace(tzinfo=None)
-            comments = requests_seletion(response, '"contextualInfo":', ",")
-            likes = requests_seletion(response, '"likeCount":', ",")
-            views = requests_seletion(response, '"views":', ",")
-            comments = re.findall(r"\d+", comments)
-            views = re.findall(r"\d+(?:[\.,]\d+)?", views)
+            processed_date_raw = extract_text_between(response, list(['"startTimestamp":', '"uploadDate":']), ",")
+            processed_date = datetime.fromisoformat(processed_date_raw.strip().strip('}')).replace(tzinfo=None)
+
+            comments_raw = extract_text_between(response, '"contextualInfo":', ",")
+            views_raw = extract_text_between(response, '"views":', ",")
+            likes = extract_text_between(response, '"likeCount":', ",")
+
+
+            comments = re.findall(r"\d+", comments_raw)
+            views = re.findall(r"\d+(?:[\.,]\d+)?", views_raw)
+
+            comments_count = comments[0] if comments else "0"
+            views_count = views[0] if views else "0"
+
             if processed_date > end_date:
                 continue
             if processed_date < start_date:
@@ -96,76 +100,23 @@ class Youtube_Automation(PlayEssencial):
             filtered_videos[video['href']] = {"title": video['title'], 
                                          "date": processed_date, 
                                          "likes" : likes, 
-                                         "comments" : comments[0] if comments != [] else 0, 
-                                         "views" : views[0] if views != [] else 0
+                                         "comments" : comments_count, 
+                                         "views" : views_count
             }             
-        print("Total de vídeos filtrados:", len(filtered_videos))
-        print(filtered_videos)
+        # print("Total de vídeos filtrados:", len(filtered_videos))
+        # print(filtered_videos)
         return filtered_videos
 
-    def standard_procedure(self, dates: list):
+    def standard_procedure(self, dates: list[datetime])-> dict:
+        """
+			Standard procedure to access TikTok videos within a specified date range.
+			Args:
+				dates (list[datetime:datetime]): List containing two datetime objects representing the start and end dates.
+			Returns:
+		"""
         if self.browser == None: 
             self.start_browser_user()
         data = self.scrape_videos_by_date(dates[0], dates[1])
         # self.stop_browser()
         return data
     
-
-
-
-
-
-
-
-
-
-
-
-# //button[@class="yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading yt-spec-button-shape-next--segmented-start yt-spec-button-shape-next--enable-backdrop-filter-experiment"]//div[@class="yt-spec-button-shape-next__button-text-content"]
-
-
-
-    # def get_data(self, initial_data = None, final_data = None):
-    #     all_videos = {}
-    #     for video in self.get_video_content():
-    #         self.set_url(video['href'])
-    #         self.page.goto(self.current_url, timeout=30000)
-    #         self.page.wait_for_selector('//div[@id="description"]//tp-yt-paper-button[@id="expand"]')
-    #         self.page.locator('//div[@id="description"]//tp-yt-paper-button[@id="expand"]').click()
-    #         self.page.wait_for_selector('(//div[@id="info-container"]//span[@class="style-scope yt-formatted-string bold"])[3]')
-    #         date_ = self.page.locator('(//div[@id="info-container"]//span[@class="style-scope yt-formatted-string bold"])[3]')
-    #         date = date_.inner_text().split(" ")
-    #         remove = ["Estreou", "em", "de"]
-    #         date = list(filter(lambda x: x not in remove, date))
-    #         locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
-    #         date = " ".join(date).replace(".", "")
-    #         extract_date = datetime.strptime(date, "%d %b %Y")
-    #         if extract_date > initial_data and extract_date < final_data :
-    #             all_videos[video['href']] = {"title": video['title'], "date": extract_date}
-    #             print('passei no if')
-    #             continue
-    #         break
-    #     return all_videos
-
-
-
-    # findTerm = '"startTimestamp":' if response.text.find('"startTimestamp":') != -1 else '"uploadDate":'
-            # like_count = response.text.find('"likeCount":')
-            # end_like = response.text[like_count:].find(",") + like_count
-            # likes = response.text[like_count:end_like]
-            # print(">>>>>>>> LIKES", likes)
-            # comments = response.text.find('"contextualInfo":')
-
-            # print("FIND TERM IS:" , findTerm)
-            # begin = response.text.find(findTerm)
-            # end = response.text[begin:].find(",") + begin
-            # result = response.text[begin:end]
-            # print(f"begin: {begin} end: {end} RESULT IS: ", result)
-            # date = str(date.replace('"', '')).removeprefix(findTerm.replace('"', ''))
-            # print("Result", result)
-            # processed_date = datetime.fromisoformat(result[0:-6])
-            # processed_date = processed_date.strftime('%d/%m/%Y')
-            # print("processed", processed_date)
-            # end_date = datetime.fromisoformat(end_date)
-            # print("end date", end_date)
-            # print("start date", start_date)
