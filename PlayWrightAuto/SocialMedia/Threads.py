@@ -48,6 +48,8 @@ class Threads_Automation(PlayEssencial):
             access_date = post.locator('//div[@class="x78zum5 x1c4vz4f x2lah0s"]//a[@class="x1i10hfl xjbqb8w x1ejq31n x18oe1m7 x1sy0etr xstzfhl x972fbf x10w94by x1qhh985 x14e42zd x9f619 x1ypdohk xt0psk2 xe8uvvx xdj266r x14z9mp xat24cr x1lziwak xexx8yu xyri2b x18d9i69 x1c1uobl x16tdsg8 x1hl2dhg xggy1nq x1a2a7pz x1lku1pv x12rw4y6 xrkepyr x1citr7e x37wo2f"]')
             # print("href is.", access_date.get_attribute("href"))
             access_desc = post.locator('//div[@class="x1a6qonq x6ikm8r x10wlt62 xj0a0fe x126k92a x6prxxf x7r5mf7"]')
+            access_comp = post.locator('//div[@class="x6s0dn4 xfkn95n xly138o xchwasx xfxlei4 x78zum5 xl56j7k x1n2onr6 x3oybdh xx6bhzk x12w9bfk x11xpdln xc9qbxq x14qfxbe"]').all_inner_texts()
+            access_metrics = post.locator('//div[@class="x6s0dn4 xfkn95n xly138o xchwasx xfxlei4 x78zum5 xl56j7k x1n2onr6 x3oybdh xx6bhzk x12w9bfk x11xpdln xc9qbxq x1ye3gou xn6708d x14atkfc"]').all_inner_texts()
             # print("access desc is.", access_desc.count())
             # print('passei aqui')
             if access_desc.count() > 0:
@@ -61,15 +63,20 @@ class Threads_Automation(PlayEssencial):
                 # print(f"Data encontrada: {last_date}")
                 if since <= last_date <= until:
                     link_href = access_date.get_attribute("href")
-                    links_filtrados.append(({link_href : {'Descrição' :  desc[:-9], 'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S")}}))
+                    links_filtrados.append(({link_href : {'Descrição' :  desc[:-9], 
+                                                          'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S"), 
+                                                          'Curtidas' : access_metrics[0] if access_metrics[0] != '' else 0, 
+                                                          'Comentários' : access_metrics[1] if access_metrics[1] != '' else 0, 
+                                                          'Repostados' : access_metrics[2] if access_metrics[2] != '' else 0, 
+                                                          'Compartilhamentos' : access_metrics[3] if len(access_metrics) > 3 else 0}}))
                     # datas.append(last_date.strftime("%d/%m/%Y %H:%M:%S"))
                     # print(f"Link adicionado: {link_href}")
                 
                 elif last_date < since:
                     break
         
-        # print("Total de posts filtrados:", len(links_filtrados))
-        # print("Links filtrados:", links_filtrados)
+        print("Total de posts filtrados:", len(links_filtrados))
+        print("Links filtrados:", links_filtrados)
         # print("Datas filtradas:", datas)
         return links_filtrados
 
