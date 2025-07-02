@@ -110,6 +110,7 @@ class Tiktok_Automation(PlayEssencial):
 			response_data = self.extract_text_between(response, '"statsV2":', ',"warnInfo"')
 			stats = response_data.get('statsV2', {})
 			result_info[self.current_url].update({
+				"date_created": processed_date,
 				"digg_count": stats.get("diggCount", "0"),
 				"share_count": stats.get("shareCount", "0"),
 				"comment_count": stats.get("commentCount", "0"),

@@ -24,7 +24,6 @@ class Threads_Automation(PlayEssencial):
         since = since if type(since) == datetime else datetime.strptime(since, "%d/%m/%Y")
         until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
         # print("since is", until)
-
         last_date = datetime.now()  
         links_filtrados = []
         # datas = []
