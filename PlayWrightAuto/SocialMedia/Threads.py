@@ -1,5 +1,6 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
-from datetime import datetime, timezone
+from components.PlayWrightAuto.locators import *
+from datetime import datetime
 import logging
 
 
@@ -15,16 +16,22 @@ class Threads_Automation(PlayEssencial):
         self.account = account
         super().__init__(f'https://www.threads.net/{self.account}', playwright, browser_data_path, chrome_executable_path, browser, page)
 
-    def validate_locator(self, locator : str, description="element"):
-        try:
-            self.page.wait_for_selector(locator, timeout=5000)
-            logging.info(f"Locator {description} encontrado: {locator}")
-            return True
-        except:
-            print(f"O locator {description} não foi encontrado: {locator}")
-            return False
-
-    def get_href(self, since: str | datetime, until: str | datetime):
+    def validate_locator(self, locators : list)-> None:
+        def _check_locator(locator: str, description="element"):
+            try:
+                self.page.wait_for_selector(locator, timeout=5000)
+                logging.info(f"Locator {description} encontrado: {locator}\n")
+                return True
+            except:
+                logging.error(f"O locator {description} não foi encontrado: {locator}")
+                return False
+        missing_locators = [
+            desc for locator, desc in locators if not _check_locator(locator, desc)
+        ]
+        if missing_locators:
+            raise Exception(f"Os seguintes locators não foram encontrados: {', '.join(missing_locators)}")
+         
+    def get_href(self, since: str | datetime, until: str | datetime) -> list[dict]:
         def convert_text_to_metrics(metrics_text: list) -> dict:
             metrics_dict = {}
             metrics_dict['Curtidas'] = metrics_text[0] if metrics_text[0] != '' else 0
@@ -38,88 +45,68 @@ class Threads_Automation(PlayEssencial):
         self.set_url(self.current_url)
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
-        self.validate_locator('//div[@aria-label="Corpo da coluna"]', "<< Corpo da coluna >>")
         self.page.wait_for_timeout(5000)
-        feed = self.page.locator('//div[@aria-label="Corpo da coluna"]')
+        locators = [
+                (threads_corpo, "<< Corpo da coluna >>"),
+                (threads_datetime, "<< Data do post >>"),
+                (threads_metrics, "<< Metrics post >>"),
+                (threads_description, "<< Description post >>"),
+                (threads_post_href, "<< Href post >>"),
+                (threads_feed_post, "<< Feed post >>"),
+            ]
+        self.validate_locator(locators)
+        feed = self.page.locator(threads_corpo)
         count = feed.count()
-        print(f"Total de posts encontrados: {count}")
         since = since if type(since) == datetime else datetime.strptime(since, "%d/%m/%Y")
         until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
-        print("since is", until)
         last_date = datetime.now()  
-        links_filtrados = []
-        self.validate_locator('//div[@class="x78zum5 x1c4vz4f x2lah0s"]', "<< Data do post >>")
-        ##inicia a parte para pegar as postagens por data
+        filtered_posts = []
         while last_date >= since:
+            logger.info("Scrolling to load more posts...")
             self.page.mouse.wheel(0, 1000)
             self.page.wait_for_timeout(500)
-            posts = feed.locator('//div[@class="x78zum5 x1c4vz4f x2lah0s"]')#funciona - esse locator pega exatamente a div que contem o time
+            posts = feed.locator(threads_datetime)
             count = posts.count()
             last_post = posts.nth(count - 1)
             access_date = last_post.locator('//time')
             last_datetime_str = access_date.get_attribute("datetime")
-            print("last date time is", last_datetime_str)
             if last_datetime_str:
                     last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                     if last_date < since:
                         break
-        #inicia um novo processo para pegar os links e descrições baseado nas datas extraidas
-        self.validate_locator('//div[@class="x1a2a7pz x1n2onr6"]', "<< Feed post >>")
-        posts = feed.locator('//div[@class="x1a2a7pz x1n2onr6"]')
+        posts = feed.locator(threads_feed_post)
         count = posts.count()
-        print(f"Total de posts encontrados: {count}")
-        self.validate_locator('//div[@class="x78zum5"]//div[@class="x6s0dn4 x17zd0t2 x78zum5 xl56j7k"]', "<< Metrics post >>")
-        self.validate_locator('//div[@class="x1a6qonq x6ikm8r x10wlt62 xj0a0fe x126k92a x6prxxf x7r5mf7"]', "<< Description post >>")
-        input()
         for i in range(count):
             post = posts.nth(i)
-            metrics = post.locator('//div[@class="x78zum5"]//div[@class="x6s0dn4 x17zd0t2 x78zum5 xl56j7k"]').all_inner_texts()
-            href = post.get_attribute("href")
-            description = post.locator('//div[@class="x1a6qonq x6ikm8r x10wlt62 xj0a0fe x126k92a x6prxxf x7r5mf7"]')
+            metrics = post.locator(threads_metrics).all_inner_texts()
+            href = post.locator(threads_post_href).get_attribute("href")
+            description = post.locator(threads_description)
             if description.count() > 0:
                  description = description.text_content()
             else:
                  description = "Sem descrição"
-            print(">>>>>>>>>>>>>>>>", href)
-            print("metrics are", metrics)
-            print("description is", description)
-        
-            # print("href is.", access_date.get_attribute("href"))
-            # access_desc = post.locator('//div[contains(@class, "x1a6qonq")]')
-            # access_comp = post.locator('//div[@class="x6s0dn4 xfkn95n xly138o xchwasx xfxlei4 x78zum5 xl56j7k x1n2onr6 x3oybdh xx6bhzk x12w9bfk x11xpdln xc9qbxq x14qfxbe"]').all_inner_texts()
-            # access_metrics = post.locator('//span[contains(text(), "Curtir") or contains(text(), "Coment") or contains(text(), "Compart")]//..').all_inner_texts()
-            # print("access desc is.", access_desc.count())
-            # print('passei aqui')
-            # if access_desc.count() > 0:
-            #     desc = access_desc.text_content()
-            # else:
-            #     desc = "Sem descrição"
-            # last_datetime_str = access_date.locator("time").get_attribute("datetime")
-            # print(">>>>>>>>>>>>>>>>", desc[:-9])
-            # if last_datetime_str:
-            #     last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-            #     print(f"Data encontrada: {last_date}")
-            #     if since <= last_date <= until:
-            #         link_href = access_date.get_attribute("href")
-            #         links_filtrados.append(({link_href : {'Descrição' :  desc[:-9], 
-            #                                               'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S"), 
-            #                                               'Curtidas' : access_metrics[0] if access_metrics[0] != '' else 0, 
-            #                                               'Comentários' : access_metrics[1] if access_metrics[1] != '' else 0, 
-            #                                               'Repostados' : access_metrics[2] if access_metrics[2] != '' else 0, 
-            #                                               'Compartilhamentos' : access_metrics[3] if len(access_metrics) > 3 else 0}}))
-            #         # datas.append(last_date.strftime("%d/%m/%Y %H:%M:%S"))
-            #         # print(f"Link adicionado: {link_href}")
-                
-            #     elif last_date < since:
-            #         break
-        
-        print("Total de posts filtrados:", len(links_filtrados))
-        print("Links filtrados:", links_filtrados)
-        # print("Datas filtradas:", datas)
-        return links_filtrados
+            metrics = convert_text_to_metrics(metrics)
+            last_datetime_str = post.locator("//time").get_attribute("datetime")
+            logger.info(f"Post {i+1}/{count} - Link: {href} - Date: {last_datetime_str} - Metrics: {metrics} - Description: {description}\n\n")
+            if last_datetime_str:
+                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
+                if since <= last_date <= until:
+                    filtered_posts.append((
+                    {href : {'Descrição' :  description, 
+                    'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S"), 
+                    'Curtidas' : metrics.get('Curtidas', 0),
+                    'Comentários' : metrics.get('Comentários', 0),
+                    'Visualizações' : metrics.get('Visualizações', 0),
+                    'Repostados' : metrics.get('Repostados', 0),
+                    'Compartilhamentos' : metrics.get('Compartilhamentos', 0),}}
+                    )) 
+                elif last_date < since:
+                    break
+        input("Pressione Enter para continuar...")
+        return filtered_posts
 
 
-    def standard_procedure(self, dates:list[datetime]):
+    def standard_procedure(self, dates:list[datetime])-> list[dict]:
             if self.browser == None: 
                 self.start_browser_user()
             data = self.get_href(dates[0], dates[1])
