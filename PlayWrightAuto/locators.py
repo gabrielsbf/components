@@ -1,3 +1,4 @@
+# Locators específicos para o Threads (Meta)
 # A primeira div representa o contêiner de todas as métricas do post,
 # a segunda percorre cada métrica individualmente dentro desse contêiner.
 threads_metrics = '//div[@class="x78zum5"]//div[@class="x6s0dn4 x17zd0t2 x78zum5 xl56j7k"]'
@@ -18,3 +19,9 @@ threads_corpo = '//div[@aria-label="Corpo da coluna"]'
 
 # Seletor para cada post individual no feed (ainda funciona)
 threads_feed_post = '//div[@class="x1a2a7pz x1n2onr6"]'
+
+
+
+# Locators específicos para o youtube (Google)
+# Seletor para o contêiner de vídeos na página do canal (ainda funciona)
+youtube_video_container = '//div[@class="style-scope ytd-rich-grid-renderer"]//a[@id="video-title-link"]'
