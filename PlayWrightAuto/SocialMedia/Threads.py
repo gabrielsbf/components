@@ -1,4 +1,4 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.essencial import PlayEssencial, 
 from components.PlayWrightAuto.locators import *
 from datetime import datetime
 import logging
@@ -16,20 +16,7 @@ class Threads_Automation(PlayEssencial):
         self.account = account
         super().__init__(f'https://www.threads.net/{self.account}', playwright, browser_data_path, chrome_executable_path, browser, page)
 
-    def validate_locator(self, locators : list)-> None:
-        def _check_locator(locator: str, description="element"):
-            try:
-                self.page.wait_for_selector(locator, timeout=5000)
-                logging.info(f"Locator {description} encontrado: {locator}\n")
-                return True
-            except:
-                logging.error(f"O locator {description} não foi encontrado: {locator}")
-                return False
-        missing_locators = [
-            desc for locator, desc in locators if not _check_locator(locator, desc)
-        ]
-        if missing_locators:
-            raise Exception(f"Os seguintes locators não foram encontrados: {', '.join(missing_locators)}")
+    
          
     def get_href(self, since: str | datetime, until: str | datetime) -> list[dict]:
         def convert_text_to_metrics(metrics_text: list) -> dict:
@@ -46,16 +33,7 @@ class Threads_Automation(PlayEssencial):
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
         self.page.wait_for_timeout(5000)
-        locators = [
-                (threads_corpo, "<< Corpo da coluna >>"),
-                (threads_datetime, "<< Data do post >>"),
-                (threads_metrics, "<< Metrics post >>"),
-                (threads_description, "<< Description post >>"),
-                (threads_post_href, "<< Href post >>"),
-                (threads_feed_post, "<< Feed post >>"),
-            ]
-        self.validate_locator(locators)
-        feed = self.page.locator(threads_corpo)
+        feed = self.c
         count = feed.count()
         since = since if type(since) == datetime else datetime.strptime(since, "%d/%m/%Y")
         until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
