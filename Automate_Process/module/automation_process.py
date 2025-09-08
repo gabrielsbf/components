@@ -44,7 +44,7 @@ class Selenium_Manager(Date_Utils):
 		if other_options != False:
 			for key, value in other_options.items():
 				if value == True:
-					self.options.add_argument(value)
+					self.options.add_argument(key)
 				else:
 					self.options.add_argument(f"{key}={value}")
 
