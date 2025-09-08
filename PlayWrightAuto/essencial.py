@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright, Locator
 from components.ProxyGenerate.getProxy import ProxyRequest
 import logging
+from components.PlayWrightAuto.LocatorImport import safeLocator
 
 logging.basicConfig(
     level=logging.DEBUG,  
@@ -19,7 +20,7 @@ class PlayEssencial:
         self.page = None if page == None else page
         self.browser_data_path = browser_data_path
         self.chrome_executable_path = chrome_executable_path
-    
+        
     def validate_locator(self, locator : Locator)-> None:
         def check_locator(locator: Locator, description="element"):
             try:

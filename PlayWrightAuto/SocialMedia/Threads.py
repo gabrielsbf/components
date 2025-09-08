@@ -33,7 +33,7 @@ class Threads_Automation(PlayEssencial):
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
         self.page.wait_for_timeout(5000)
-        feed = self.page.locator(self.validate_locator(THREADS_FEED))
+        feed = self.page.safeLocator(THREADS_FEED, "Feed dos Posts - Geral")
         count = feed.count()
         since = since if type(since) == datetime else datetime.strptime(since, "%d/%m/%Y")
         until = until if type(until) == datetime else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
@@ -43,7 +43,7 @@ class Threads_Automation(PlayEssencial):
             logger.info("Scrolling to load more posts...")
             self.page.mouse.wheel(0, 1000)
             self.page.wait_for_timeout(500)
-            posts = feed.locator(self.validate_locator(THREADS_FEED_POST))
+            posts = feed.safeLocator(THREADS_FEED_POST, "Posts Individuais -> De forma geral")
             count = posts.count()
             last_post = posts.nth(count - 1)
             access_date = last_post.locator('//time')
@@ -52,19 +52,19 @@ class Threads_Automation(PlayEssencial):
                     last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                     if last_date < since:
                         break
-        posts = feed.locator(self.validate_locator(THREADS_FEED_POST))
+        posts = feed.safeLocator(THREADS_FEED_POST, "Posts Individuais -> De forma geral")
         count = posts.count()
         for i in range(count):
             post = posts.nth(i)
-            metrics = post.locator(self.validate_locator(THREADS_METRICS)).all_inner_texts()
-            href = post.locator(self.validate_locator(THREADS_POST_HREF)).get_attribute("href")
-            description = post.locator(self.validate_locator(THREADS_DESCRIPTION))
+            metrics = post.safeLocator(THREADS_METRICS, "Métricas do Threads").all_inner_texts()
+            href = post.safeLocator(THREADS_POST_HREF, "link do Threads").get_attribute("href")
+            description = post.safeLocator(THREADS_DESCRIPTION, "Descrição do Post")
             if description.count() > 0:
                  description = description.text_content()
             else:
                  description = "Sem descrição"
             metrics = convert_text_to_metrics(metrics)
-            last_datetime_str = post.locator(self.validate_locator("//time")).get_attribute("datetime")
+            last_datetime_str = post.safeLocator("//time", "Última data de Todos os Posts - Comparação").get_attribute("datetime")
             logger.info(f"Post {i+1}/{count} - Link: {href} - Date: {last_datetime_str} - Metrics: {metrics} - Description: {description}\n\n")
             if last_datetime_str:
                 last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")

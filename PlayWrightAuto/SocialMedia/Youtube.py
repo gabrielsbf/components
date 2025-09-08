@@ -59,7 +59,7 @@ class Youtube_Automation(PlayEssencial):
             input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
             self.page.wait_for_load_state("domcontentloaded")
             self.page.wait_for_timeout(3000)
-            youtube_container = self.validate_locator(YOUTUBE_VIDEO_CONTAINER)
+            youtube_container = self.safeLocator(YOUTUBE_VIDEO_CONTAINER, "Container de Vídeos do YouTube")
             self.page.wait_for_selector(youtube_container, timeout=10000)
             hrefs = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.href)')
             titles = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.title)')
