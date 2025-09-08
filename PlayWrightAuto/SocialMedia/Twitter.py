@@ -57,7 +57,7 @@ class Twitter_Automation(PlayEssencial):
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
         self.page.wait_for_selector("//section[@class='css-175oi2r']", timeout=30000)
         self.page.wait_for_timeout(5000)
-        feed_container = self.page.locator('//div[@class="css-175oi2r r-150rngu r-16y2uox r-1wbh5a2 r-rthrr5"]')
+        feed_container = self.page.locator('//div[@class="css-175oi2r r-150rngu r-16y2uox r-1wbh5a2 r-33ulu8"]')
         total_posts = feed_container.count()
         processed_hrefs = set()
         filtered_posts = []

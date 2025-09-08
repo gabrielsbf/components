@@ -59,13 +59,10 @@ class Youtube_Automation(PlayEssencial):
             input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
             self.page.wait_for_load_state("domcontentloaded")
             self.page.wait_for_timeout(3000)
-            try:
-                self.page.wait_for_selector(youtube_video_container, timeout=10000)
-            except:
-                logger.error("O seletor de vídeos não foi encontrado. Verifique se há um CAPTCHA ou erro na página.")
-                input("Pressione Enter para continuar após resolver o problema...")
-            hrefs = self.page.eval_on_selector_all(youtube_video_container, '(links) => links.map(link => link.href)')
-            titles = self.page.eval_on_selector_all(youtube_video_container, '(links) => links.map(link => link.title)')
+            youtube_container = self.validate_locator(YOUTUBE_VIDEO_CONTAINER)
+            self.page.wait_for_selector(youtube_container, timeout=10000)
+            hrefs = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.href)')
+            titles = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.title)')
             logger.info(f"HREFS: {hrefs} - TITLES:{titles}\n")
             [video_info.append(info) for info in zip(hrefs, titles)]
             
