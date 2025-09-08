@@ -1,10 +1,17 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.locators import *
 from datetime import datetime
 from typing import Generator
 from requests import Response
+import logging
 import requests
 import re
 
+logging.basicConfig(
+    level=logging.DEBUG,  
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 class Youtube_Automation(PlayEssencial):
     def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -43,6 +50,7 @@ class Youtube_Automation(PlayEssencial):
             "x-browser-year": "2025",
             "x-client-data": "CIi2yQEIo7bJAQipncoBCKP3ygEIk6HLAQiJo8sBCJ3+zAEIhaDNAQj9284BCK/kzgEIl+bOAQjv5s4BGODizgEYm+fOAQ=="
         }
+
     def get_video_content(self)-> Generator[dict, None, None]:
         video_info = []
         def extract_hrefs(url)-> None:
@@ -51,13 +59,15 @@ class Youtube_Automation(PlayEssencial):
             input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
             self.page.wait_for_load_state("domcontentloaded")
             self.page.wait_for_timeout(3000)
-            hrefs = self.page.eval_on_selector_all('//div[@class="style-scope ytd-rich-grid-renderer"]//a[@id="video-title-link"]', '(links) => links.map(link => link.href)')
-            titles = self.page.eval_on_selector_all('//div[@class="style-scope ytd-rich-grid-renderer"]//a[@id="video-title-link"]', '(links) => links.map(link => link.title)')
-            print(f"hrefs are: {hrefs}\ntitles are:{titles}", hrefs)
+            youtube_container = self.safeLocator(YOUTUBE_VIDEO_CONTAINER, "Container de Vídeos do YouTube")
+            self.page.wait_for_selector(youtube_container, timeout=10000)
+            hrefs = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.href)')
+            titles = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.title)')
+            logger.info(f"HREFS: {hrefs} - TITLES:{titles}\n")
             [video_info.append(info) for info in zip(hrefs, titles)]
+            
         extract_hrefs(self.current_url + self.account + '/videos')
         extract_hrefs('https://www.youtube.com/c/'+ self.account + '/streams')
-        print("VIDEO INFO IS:", video_info)
         for href, title in video_info:
             yield {"title": title, "href": href}
 
@@ -78,14 +88,17 @@ class Youtube_Automation(PlayEssencial):
             return snippet
         for video in self.get_video_content():
             self.set_url(video['href'])
-            response = requests.get(self.current_url, headers=self.headers)
+            try:
+                response = requests.get(self.current_url, headers=self.headers)
+            except Exception as e:
+                logger.error(f"Erro ao fazer a requisição para {self.current_url}: {e}")
+                break
             processed_date_raw = extract_text_between(response, list(['"startTimestamp":', '"uploadDate":']), ",")
             processed_date = datetime.fromisoformat(processed_date_raw.strip().strip('}')).replace(tzinfo=None)
 
             comments_raw = extract_text_between(response, '"contextualInfo":', ",")
             views_raw = extract_text_between(response, '"views":', ",")
             likes = extract_text_between(response, '"likeCount":', ",")
-
 
             comments = re.findall(r"\d+", comments_raw)
             views = re.findall(r"\d+(?:[\.,]\d+)?", views_raw)
@@ -102,9 +115,8 @@ class Youtube_Automation(PlayEssencial):
                                          "likes" : likes, 
                                          "comments" : comments_count, 
                                          "views" : views_count
-            }             
-        # print("Total de vídeos filtrados:", len(filtered_videos))
-        # print(filtered_videos)
+            }  
+            logger.info(f"Video: {video['title']} - Date: {processed_date} - Likes: {likes} - Comments: {comments_count} - Views: {views_count}\n")           
         return filtered_videos
 
     def standard_procedure(self, dates: list[datetime])-> dict:

@@ -1,4 +1,5 @@
 from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.locators import *
 from requests import Response
 from datetime import datetime
 from typing import Union, Generator
@@ -159,9 +160,8 @@ class Tiktok_Automation(PlayEssencial):
 		self.page.goto(self.current_url, timeout=30000)
 		input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
 		self.page.wait_for_load_state("domcontentloaded",timeout=30000)
-		self.page.wait_for_selector("//div[@id='main-content-others_homepage']")
-		feed = self.page.locator("//div[@id='main-content-others_homepage']")
-		items = feed.locator('//div[@class="css-1uqux2o-DivItemContainerV2 e19c29qe7"]')
+		feed = self.page.locator(self.validate_locator(TIKTOK_FEED_CONTAINER))
+		items = feed.locator(self.validate_locator(TIKTOK_FEED_POST))
 		count = items.count()
 		for i in range(count):
 			item = items.nth(i)
