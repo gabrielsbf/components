@@ -1,5 +1,5 @@
-# import dotenv
-# import dotenv.variables  
+import dotenv
+import dotenv.variables  
 from pathlib import Path
 import os
 
