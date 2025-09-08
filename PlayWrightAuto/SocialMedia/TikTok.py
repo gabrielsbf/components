@@ -160,13 +160,12 @@ class Tiktok_Automation(PlayEssencial):
 		self.page.goto(self.current_url, timeout=30000)
 		input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
 		self.page.wait_for_load_state("domcontentloaded",timeout=30000)
-		feed = self.page.locator(self.validate_locator(TIKTOK_FEED_CONTAINER))
-		items = feed.locator(self.validate_locator(TIKTOK_FEED_POST))
+		feed = self.page.safeLocator(TIKTOK_FEED_CONTAINER, "Container de Feed do TikTok")
+		items = feed.safeLocator(TIKTOK_FEED_POST, "Posts do TikTok")
 		count = items.count()
 		for i in range(count):
 			item = items.nth(i)
-			result_info[item.locator("a").get_attribute("href")] = {"description": item.locator("img").get_attribute("alt")}
-			print(result_info)
+			result_info[item.safeLocator("a", "link do Post").get_attribute("href")] = {"description": item.safeLocator("img", "Descrição do Post").get_attribute("alt")}
 		return result_info
 
 	def standard_procedure(self, dates: list[datetime])-> dict:
@@ -180,7 +179,5 @@ class Tiktok_Automation(PlayEssencial):
 		if self.browser == None: 
 			self.start_browser_user()
 		data = self.get_feed_info()
-		print("FEED DATA -> ", data)
 		value = self.access_videos(data, dates[0], dates[1])
-		print(value)
 		return value

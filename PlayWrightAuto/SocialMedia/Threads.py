@@ -70,7 +70,8 @@ class Threads_Automation(PlayEssencial):
                 last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
                 if since <= last_date <= until:
                     filtered_posts.append((
-                    {href : {'Descrição' :  description, 
+                    {"".join(["https://www.threads.net", href]) : {
+                    'Descrição' :  description, 
                     'Data' : last_date.strftime("%d/%m/%Y %H:%M:%S"), 
                     'Curtidas' : metrics.get('Curtidas', 0),
                     'Comentários' : metrics.get('Comentários', 0),

@@ -4,8 +4,8 @@ import logging
 def safeLocator(self, xmlPath:str, description="Não Definido")->Locator:
         def check_locator(xmlPath, description):
             try:
+                logging.info(f"Locator a procurar: {description}")
                 self.wait_for_selector(xmlPath, timeout=5000)
-                logging.info(f"Locator encontrado: {description}\n")
                 return True
             except:
                 logging.error(f"O locator {description} não foi encontrado. Path -> {xmlPath}")

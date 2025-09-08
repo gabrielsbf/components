@@ -56,9 +56,7 @@ class Twitter_Automation(PlayEssencial):
         self.set_url(self.current_url)
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
-        self.page.wait_for_selector(TWITTER_FEED_CONTAINER, timeout=30000)
-        self.page.wait_for_timeout(5000)
-        feed_container = self.page.locator(TWITTER_FEED_CONTAINER)
+        feed_container = self.page.safeLocator(TWITTER_FEED_CONTAINER, "Container de Feed do Twitter")
         print('Iniciando coleta de posts...')
         total_posts = feed_container.count()
         processed_hrefs = set()
@@ -67,7 +65,7 @@ class Twitter_Automation(PlayEssencial):
         while continue_collecting:
             self.page.mouse.wheel(0, 1000)
             self.page.wait_for_timeout(500)
-            posts = feed_container.locator('//article')
+            posts = feed_container.safeLocator('//article', "Posts do Twitter")
             total_posts = posts.count()
             if total_posts == 0:
                 print('Saindo do loop')
@@ -75,16 +73,16 @@ class Twitter_Automation(PlayEssencial):
 
             for i in range(total_posts):
                 post = posts.nth(i)
-                engagement_summary_str = post.locator(TWITTER_METRICS).get_attribute("aria-label")if post.locator(TWITTER_METRICS).count() > 0 else None
-                element = post.locator(TWITTER_POST_HREF).first
-                datetime_str = element.locator("time").get_attribute("datetime") if element.locator("time").count() > 0 else None
+                engagement_summary_str = post.safeLocator(TWITTER_METRICS, "Métricas do Post").get_attribute("aria-label") if post.locator(TWITTER_METRICS).count() > 0 else None
+                element = post.safeLocator(TWITTER_POST_HREF, "Link do Post").first
+                datetime_str = element.safeLocator("time", "Data do Post").get_attribute("datetime") if element.locator("time").count() > 0 else None
                 post_datetime = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ") if datetime_str else "Sem data"
                 post_url = element.get_attribute("href")
                 if post_url in processed_hrefs:
                     continue
                 processed_hrefs.add(post_url)          
                 post_metrics = convert_text_to_metrics(engagement_summary_str) if engagement_summary_str else {}
-                post_decription = post.locator(TWITTER_DESCRIPTION).inner_text() if post.locator(TWITTER_DESCRIPTION).count() > 0 else "Sem descrição"
+                post_decription = post.safeLocator(TWITTER_DESCRIPTION, "Descrição do Post").inner_text() if post.locator(TWITTER_DESCRIPTION).count() > 0 else "Sem descrição"
                 post_decription = re.sub(r'\s+', ' ', post_decription).strip() if post_decription else "Sem descrição"
                 if post_datetime < start_date:
                     continue_collecting = False
