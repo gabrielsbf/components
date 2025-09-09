@@ -1,4 +1,4 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.essencial import PlayEssencial, logger
 from components.PlayWrightAuto.locators import *
 from datetime import datetime
 from typing import Generator
@@ -7,11 +7,8 @@ import logging
 import requests
 import re
 
-logging.basicConfig(
-    level=logging.DEBUG,  
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+
+
 
 class Youtube_Automation(PlayEssencial):
     def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -52,6 +49,16 @@ class Youtube_Automation(PlayEssencial):
         }
 
     def get_video_content(self)-> Generator[dict, None, None]:
+        """
+            Collects videos from a YouTube account ("Videos" and "Streams" tabs).
+
+            Flow:
+            - Accesses the account's videos and streams pages.
+            - Extracts titles and links for each video.
+            - Yields a dictionary with {"title": title, "href": link}.
+
+            :yield: dict -> Video information (title and link).
+        """
         video_info = []
         def extract_hrefs(url)-> None:
             self.set_url(url)
@@ -72,6 +79,22 @@ class Youtube_Automation(PlayEssencial):
             yield {"title": title, "href": href}
 
     def scrape_videos_by_date(self, start_date :  datetime, end_date : datetime)-> dict:
+        """
+            Filters videos within a given date range.
+
+            Flow:
+            - Iterates through videos collected by `get_video_content`.
+            - Requests each video page and extracts:
+                * Publish date
+                * Likes
+                * Comments
+                * Views
+            - Returns only videos within [start_date, end_date].
+
+            :param start_date: datetime -> Start date
+            :param end_date: datetime -> End date
+            :return: dict -> Filtered videos with title, date, likes, comments, and views
+        """
         filtered_videos = {}
         def extract_text_between(response : Response, start_maker : str, end_maker : str)-> str:
             if type(start_maker) == list:
@@ -91,7 +114,7 @@ class Youtube_Automation(PlayEssencial):
             try:
                 response = requests.get(self.current_url, headers=self.headers)
             except Exception as e:
-                logger.error(f"Erro ao fazer a requisição para {self.current_url}: {e}")
+                logging.error(f"Erro ao fazer a requisição para {self.current_url}: {e}")
                 break
             processed_date_raw = extract_text_between(response, list(['"startTimestamp":', '"uploadDate":']), ",")
             processed_date = datetime.fromisoformat(processed_date_raw.strip().strip('}')).replace(tzinfo=None)
@@ -121,7 +144,7 @@ class Youtube_Automation(PlayEssencial):
 
     def standard_procedure(self, dates: list[datetime])-> dict:
         """
-			Standard procedure to access TikTok videos within a specified date range.
+			Standard procedure to start the browser, scrape videos by date, and return the data.
 			Args:
 				dates (list[datetime:datetime]): List containing two datetime objects representing the start and end dates.
 			Returns:

@@ -1,24 +1,22 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.essencial import PlayEssencial, logger
 from components.PlayWrightAuto.locators import *
 from datetime import datetime
 import logging
-
-
-logging.basicConfig(
-    level=logging.DEBUG,  
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 
 class Threads_Automation(PlayEssencial):
     def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
         self.account = account
         super().__init__(f'https://www.threads.net/{self.account}', playwright, browser_data_path, chrome_executable_path, browser, page)
-
-    
-         
+  
     def get_href(self, since: str | datetime, until: str | datetime) -> list[dict]:
+        """
+            Scrolls the Threads feed, collects posts within the given date range and returns data.
+
+            :param since: str | datetime -> Start date in "dd/mm/yyyy" format or datetime object
+            :param until: str | datetime -> End date in "dd/mm/yyyy" format or datetime object
+            :return: list[dict] -> List of posts with link, description, date, and metrics
+        """
         def convert_text_to_metrics(metrics_text: list) -> dict:
             metrics_dict = {}
             metrics_dict['Curtidas'] = metrics_text[0] if metrics_text[0] != '' else 0
@@ -85,8 +83,14 @@ class Threads_Automation(PlayEssencial):
 
 
     def standard_procedure(self, dates:list[datetime])-> list[dict]:
-            if self.browser == None: 
-                self.start_browser_user()
-            data = self.get_href(dates[0], dates[1])
-            self.stop_browser()
-            return data
+        """
+            Runs the standard procedure: starts browser, fetches posts for given period, stops browser.
+
+            :param dates: list[datetime] -> List with [start_date, end_date]
+            :return: list[dict] -> Posts data collected
+        """
+        if self.browser == None: 
+            self.start_browser_user()
+        data = self.get_href(dates[0], dates[1])
+        self.stop_browser()
+        return data

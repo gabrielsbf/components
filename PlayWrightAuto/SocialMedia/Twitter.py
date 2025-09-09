@@ -1,16 +1,9 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.essencial import PlayEssencial, logger
 from components.PlayWrightAuto.locators import *
 from datetime import datetime
 import logging
 import re
 
-
-
-logging.basicConfig(
-    level=logging.DEBUG,  
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 class Twitter_Automation(PlayEssencial):
     def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -59,7 +52,7 @@ class Twitter_Automation(PlayEssencial):
         self.page.wait_for_selector(TWITTER_FEED_CONTAINER, timeout=30000)
         self.page.wait_for_timeout(5000)
         feed_container = self.page.locator(TWITTER_FEED_CONTAINER)
-        print('Iniciando coleta de posts...')
+        logger.info('Iniciando coleta de posts...')
         total_posts = feed_container.count()
         processed_hrefs = set()
         filtered_posts = []
@@ -70,7 +63,7 @@ class Twitter_Automation(PlayEssencial):
             posts = feed_container.locator('//article')
             total_posts = posts.count()
             if total_posts == 0:
-                print('Saindo do loop')
+                logger.info('Saindo do loop')
                 break
 
             for i in range(total_posts):
@@ -88,15 +81,15 @@ class Twitter_Automation(PlayEssencial):
                 post_decription = re.sub(r'\s+', ' ', post_decription).strip() if post_decription else "Sem descrição"
                 if post_datetime < start_date:
                     continue_collecting = False
-                    print(f"Post de {post_datetime} está antes de {start_date}. Encerrando busca.")
+                    logger.info(f"Post de {post_datetime} está antes de {start_date}. Encerrando busca.")
                     break
                 if post_datetime >  end_date:
                     continue
-                logger.debug(f"Data do post: {post_datetime}")
-                logger.debug(f"Link encontrado: {post_url}")
-                logger.debug(f"Descrição do post: {post_decription}")
-                logger.debug(f"Métricas do post: {engagement_summary_str}")
-                logger.debug(f"Métricas convertidas: {post_metrics}")
+                logging.debug(f"Data do post: {post_datetime}")
+                logging.debug(f"Link encontrado: {post_url}")
+                logging.debug(f"Descrição do post: {post_decription}")
+                logging.debug(f"Métricas do post: {engagement_summary_str}")
+                logging.debug(f"Métricas convertidas: {post_metrics}")
                 filtered_posts.append(({f"https://www.x.com{post_url}" : 
                                             {'Descrição' : post_decription, 
                                             'Data' : post_datetime, 
@@ -104,12 +97,18 @@ class Twitter_Automation(PlayEssencial):
                                             'Compartilhamentos' : post_metrics.get('reposts', 0),
                                             'Curtidas' :  post_metrics.get('curtidas', 0),
                                             'Visualizações' :  post_metrics.get('visualizações', 0) }}))
-                logger.debug(f"Link adicionado: {post_url}")
-        logger.debug(f"Links filtrados: {filtered_posts}")
-        logger.debug(f"Total de links filtrados: {len(filtered_posts)}")
+                logging.debug(f"Link adicionado: {post_url}")
+        logging.debug(f"Links filtrados: {filtered_posts}")
+        logging.debug(f"Total de links filtrados: {len(filtered_posts)}")
         return filtered_posts
 
     def standard_procedure(self, dates: list[datetime])-> list[dict]:
+        """
+            Runs the standard procedure: starts browser, fetches posts for given period, stops browser.
+
+            :param dates: list[datetime] -> List with [start_date, end_date]
+            :return: list[dict] -> Posts data collected
+        """
         self.start_browser_user()
         data = self.collect_filtered_post_links(dates[0], dates[1])
         self.stop_browser()
