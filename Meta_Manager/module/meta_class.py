@@ -371,3 +371,48 @@ engajamento: {metric_sum["unique_clicks_on_post"]}
 				unique_obj1[i] = data[i]
 		for i in unique_obj1:
 			merging_unique_objects_by_id(i, obj2, id_field_obj1, id_field_obj2)
+
+	def insta_post_comments(self, media_id, limit=100):
+		"""
+		Coleta comentários de um post do Instagram
+		"""
+		endpoint = f"{media_id}/comments?fields=id,text,username,timestamp&limit={limit}"
+		comments_data = self.makeRequest(endpoint, token=self.cred["token_30days"])
+		
+		comments = comments_data[0].get("data", [])
+		try:
+			next_page = comments_data[0]["paging"]["next"]
+		except:
+			next_page = None
+
+		while next_page:
+			resp = requests.get(next_page).json()
+			comments.extend(resp.get("data", []))
+			next_page = resp.get("paging", {}).get("next")
+
+		return comments
+
+	def insta_description1(self):
+		request_validated = self.loadEndpoint("insta_desc")
+
+		insta_request = self.makeRequest(
+			request_validated,
+			media=self.cred['insta_id'],
+			token=self.cred['token_30days']
+		)
+
+		js_obj = insta_request[0]
+
+		# ✅ Checagem antes de acessar "data"
+		if "error" in js_obj:
+			print("❌ Erro na chamada da API:", js_obj["error"])
+			return False  # ou levante uma Exception
+
+		if "data" not in js_obj:
+			print("❌ A resposta não trouxe 'data'. Conteúdo recebido:", js_obj)
+			return False
+
+		new_desc = js_obj["data"]  # aqui só chega se tiver "data"
+
+		# ... o resto do seu código que usa new_desc
+		return new_desc, insta_request[1]
