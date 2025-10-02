@@ -5,6 +5,10 @@ from datetime import datetime
 from typing import Union, Generator
 import json
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 class Tiktok_Automation(PlayEssencial):
 	def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -12,7 +16,6 @@ class Tiktok_Automation(PlayEssencial):
 		self.headers = {
 			"authority": "www.tiktok.com",
 			"method": "GET",
-			# "path": "/@niteroipref/video/7485850635112385847",
 			"scheme": "https",
 			"accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
 			"accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -49,15 +52,17 @@ class Tiktok_Automation(PlayEssencial):
 			- A dictionary with the statistics (likes, comments, etc.).
 		"""
 		start_index = response.text.find(start_maker)
-		end_index = response.text[start_index:].find(end_maker) + start_index
-		snippet = response.text[start_index:end_index]
-		print("Snippet is >>>", snippet)
-		if not snippet:
-			print("Snippet is empty")
+		if start_index == -1:
+			logger.error("start index not found")
 			return {}
-		else:
-			snippet = "{" + snippet + "}"
-			json_data = json.loads(snippet)
+		end_index = response.text[start_index:].find(end_maker) + start_index
+		if end_index == -1:
+			logger.error("start index not found")
+			return {}
+		snippet = response.text[start_index:end_index]
+		logger.info("metrics object is :", snippet)
+		snippet = "{" + snippet + "}"
+		json_data = json.loads(snippet)
 		return json_data
 
 	def get_request_createdTime(self, response : Response, result_info: dict, start_date : datetime, end_date : datetime) -> Union[int, str]:
@@ -92,10 +97,9 @@ class Tiktok_Automation(PlayEssencial):
 						- 1 if the creation date is after the end_date.
 						- The current URL (self.current_url) if the date is within the range.
 		"""
-		print(f"Status Code: {response.status_code}")
 		findResp = response.text.find("webapp.video-detail") - 1
 		if findResp <= -1:
-			print("not found")
+			logger.warning("Tiktok date not found")
 			result_info[self.current_url]["date_created"] = "notFound"
 		else:
 			start_index = response.text[findResp:].find("createTime") + findResp - 1
@@ -103,7 +107,6 @@ class Tiktok_Automation(PlayEssencial):
 			result = response.text[start_index:end]
 			result = int(str(result.replace('"', '')).removeprefix("createTime:"))
 			processed_date = datetime.fromtimestamp(result)
-			print(processed_date)
 			if processed_date < start_date:
 				return (0)
 			if processed_date > end_date:
@@ -136,8 +139,7 @@ class Tiktok_Automation(PlayEssencial):
 		counter = 0
 		for link in self.iterate_video_links(result_info):
 			self.set_url(link)
-			
-			print('entrei')
+			logger.info(f"Accessing video link: {self.current_url}")
 			response = requests.get(self.current_url, headers=self.headers)
 			element_vid = self.get_request_createdTime(response, result_info, start_date, end_date)
 			if (element_vid != 0 and element_vid != 1):

@@ -1,6 +1,10 @@
 import datetime
 import time
 import calendar
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 class Date_Utils:
 	def __init__(self, date_optional=None) -> None:        
@@ -108,12 +112,12 @@ class Date_Utils:
 					if type(start_date) == str:
 						start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y %H:%M:%S")
 				except:
-					print("Alguma das datas é inválida, favor tentar novamente!")
+					logger.info("Alguma das datas é inválida, favor tentar novamente!")
 					self.date_optional = None
 					continue
 				if start_date < final_date:
 					break
-				print("Você selecionou um período inválido, por favor tente novamente!")
+				logger.warning("Você selecionou um período inválido, por favor tente novamente!")
 				self.date_optional = None
 			return [start_date,final_date]
 
@@ -147,7 +151,6 @@ class Date_Utils:
 			"unix_time": int(time.mktime(final_date_parsed.timetuple())) - int(10800)
 			}
 		}
-		print(dates)
 		return dates
 
 	def month_year(self):

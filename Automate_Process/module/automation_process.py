@@ -9,6 +9,10 @@ import os
 from bs4 import BeautifulSoup
 import re
 from components.Date_Utils.module.date_time_utils import Date_Utils
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 class Selenium_Manager(Date_Utils):
 
@@ -63,7 +67,7 @@ class Selenium_Manager(Date_Utils):
 	
 	def access_url(self):
 		self.driver.get(self.url)
-		print(f"a url {self.url} foi acessada!")
+		logger.info(f"a url {self.url} foi acessada!")
 
 	def access_field(self, type : By, elem, time_to_wait=60) -> WebElement:
 		"""
@@ -187,7 +191,7 @@ class Automate_Process(Selenium_Manager):
 
 			for elem in father:
 				try:self.get_hrefs(elem.find_all('a'), text_object)
-				except:print("element don't have hrefs")
+				except:logger.info("element don't have hrefs")
 				if not custom_fun == None:
 					nb = 1
 					for i in custom_fun:
@@ -198,7 +202,7 @@ class Automate_Process(Selenium_Manager):
 						texts = elem.get_text("|").split("|")
 						self.handle_texts(texts, text_object)
 					except Exception as err:
-						print(f"Couldn't get the attributes of the below html element:\n{elem}\nError:{err}")
+						logger.info(f"Couldn't get the attributes of the below html element:\n{elem}\nError:{err}")
 				# else :
 				# 	print("O elemento é uma quebra de linha")
 			arr_list.append(text_object)	

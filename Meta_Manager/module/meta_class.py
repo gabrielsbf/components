@@ -4,6 +4,10 @@ import json
 import threading
 from components.Date_Utils.module.date_time_utils import Date_Utils
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
 
 class Social_Manager(Date_Utils):
 
@@ -87,7 +91,7 @@ class Social_Manager(Date_Utils):
 
 		for i in range(len(args)):
 			url = self.url_requests['domain'] + media + args[i] + self.url_requests['prefix_acesstoken'] + token
-			print("url request is ", url )
+			logger.info(f"url request is  {url}" )
 			thread = threading.Thread(target=lambda : arrayRequest.append(self.fetch_data(url)))
 
 			thread.start()
@@ -126,7 +130,7 @@ class Social_Manager(Date_Utils):
 
 	def face_post_by_url(self, link):
 		page_id = self.cred["face_page_id"]
-		print(f"link is : {link}")
+		logger.info(f"link is : {link}")
 		len_substr = link.rfind('/') + 1
 		post_id = link[len_substr:len(link)]
 		endpoint = self.endpoints('face_post_desc')
@@ -142,31 +146,23 @@ class Social_Manager(Date_Utils):
 		face_request = self.makeRequest(request_validated,
 										media=self.cred['face_id'],
 										token=self.cred['token_30days'])
-		print(face_request)
 		description_data = list(face_request[0]["data"])
 
-	#print("First Dict JSON New", description_data)
 		try: next_page = face_request[0]["paging"]["next"]
 		except: next_page = 0
 
 		while next_page != 0:
-			# print("Entering in loop While")
 			new_request = requests.get(next_page)
 			newJson_file = new_request.json()
 			dataFile =list(newJson_file["data"])
-			# print(f"Data File to Append: \n type: {type(dataFile)}, \n texto: {dataFile}")
-			# print("File JSON Data new", dataFile)
 			description_data =  description_data + dataFile
-			print(f"Description Data File: \n type: {type(description_data)}, \n texto: {description_data}")
 			try:
 				next_page = newJson_file["paging"]["next"]
 			except:
 				next_page = 0
-				#print("Entering in except")
 
 		def new_key(value):
 			new_dict = {}
-			print("value is:", value)
 			new_dict.update({"post_id": value.get("id"),
 							"type" : "" if value.get("attachments") == None else value["attachments"]["data"][0].get("media_type"),
 							"permalink_url" : value.get("permalink_url"),
@@ -176,7 +172,6 @@ class Social_Manager(Date_Utils):
 			return new_dict
 
 		new_desc = list(map(new_key, description_data))
-		print(new_desc)
 		return [new_desc, date_obj]
 
 	def face_post_unique_metrics(self, data_obj):
@@ -184,7 +179,6 @@ class Social_Manager(Date_Utils):
 		request_validated2 = self.endpoints('face_metric2')
 		if request_validated1 == False or request_validated2 == False:
 			return False
-		print(data_obj)
 		data = self.makeRequest(data_obj["post_id"] +
 								request_validated1,
 								data_obj["post_id"] +
@@ -211,16 +205,14 @@ class Social_Manager(Date_Utils):
 
 					case "Lifetime Matched Audience Targeting Consumers on Post":
 						metrics_col["unique_clicks_on_post"] = values.get("value")
-						#print("cliques únicos no post: ",metrics_col["unique_clicks_on_post"])
 					case "Lifetime Engaged Users":
 						metrics_col["engaged_users"] = values.get("value")
 					case "Lifetime People who have liked your Page and engaged with your post":
 						metrics_col["engaged_fans"] = values.get("value")
 					case "Lifetime Post Total Reach":
 						metrics_col["reach"] = values.get("value")
-						#print("Alcance: ", metrics_col["reach"])
 					case _:
-						print("Não entrei em nenhum case")
+						logger.warning("Não entrei em nenhum case")
 		return metrics_col
 
 	def face_post_metrics(self, posts_obj='file', file_name=None):
@@ -272,7 +264,6 @@ class Social_Manager(Date_Utils):
 		try: next_page = insta_request[0]["paging"]["next"]
 		except: next_page = 0
 		while next_page != 0:
-			# print("Entering in loop While")
 			new_request = requests.get(next_page)
 			new_data_file = new_request.json()
 			new_data = list(new_data_file["data"])
@@ -317,7 +308,6 @@ class Social_Manager(Date_Utils):
 		return new_metrics
 
 	def creating_text_for_obj(self, json, date, separator):
-		print(json)
 		message = f"""Métricas Facebook - datas:{date[0]} a {date[1]}:
 """
 		metric_sum = {"comments" : 0,
@@ -364,10 +354,8 @@ engajamento: {metric_sum["unique_clicks_on_post"]}
 
 		def merging_unique_objects_by_id(unique_obj1, obj2, id_field_obj1, id_field_obj2):
 			append_obj = list(filter(lambda x: x[id_field_obj2] == unique_obj1[id_field_obj1], obj2))
-			print("APPEND OBJECT : ", append_obj)
 			data = append_obj[0]
 			for i in data.keys():
-				print("i is: " ,i)
 				unique_obj1[i] = data[i]
 		for i in unique_obj1:
 			merging_unique_objects_by_id(i, obj2, id_field_obj1, id_field_obj2)

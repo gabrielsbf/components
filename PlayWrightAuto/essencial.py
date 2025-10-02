@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 class PlayEssencial:
     def __init__(self, url=None, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
-        print("PlayEssencial was initialized")
-        print("browser is : ", browser, "page is : ", page)
+        logger.info("PlayEssencial was initialized")
+        logger.info(f"browser is : {browser} | page is : {page}")
         self.current_url = url
         self.playwright = None if playwright == None else playwright
         self.browser = None if browser == None else browser
@@ -39,7 +39,7 @@ class PlayEssencial:
         if url == None:
             return 
         self.current_url = url
-        print(f"{self.current_url} was set as current URL")
+        logger.info(f"{self.current_url} was set as current URL")
         return url
    
     def start_sync_playwright(self):
@@ -64,5 +64,6 @@ class PlayEssencial:
         
     def stop_browser(self):
         if self.browser:
-            input()
+            input("Pressione ENTER para fechar o browser...")
+            logger.info("Fechando o browser...")
             self.browser.close()

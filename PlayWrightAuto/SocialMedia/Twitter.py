@@ -57,7 +57,7 @@ class Twitter_Automation(PlayEssencial):
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
         feed_container = self.page.safeLocator(TWITTER_FEED_CONTAINER, "Container de Feed do Twitter")
-        print('Iniciando coleta de posts...')
+        logger.info('Iniciando coleta de posts...')
         total_posts = feed_container.count()
         processed_hrefs = set()
         filtered_posts = []
@@ -68,13 +68,13 @@ class Twitter_Automation(PlayEssencial):
             posts = feed_container.safeLocator('//article', "Posts do Twitter")
             total_posts = posts.count()
             if total_posts == 0:
-                print('Saindo do loop')
+                logger.info('Saindo do loop')
                 break
 
             for i in range(total_posts):
                 post = posts.nth(i)
-                engagement_summary_str = post.safeLocator(TWITTER_METRICS, "Métricas do Post").get_attribute("aria-label") if post.locator(TWITTER_METRICS).count() > 0 else None
-                element = post.safeLocator(TWITTER_POST_HREF, "Link do Post").first
+                engagement_summary_str = post.safeLocator(TWITTER_METRICS, "Twitter -> Métricas do Post").get_attribute("aria-label") if post.locator(TWITTER_METRICS).count() > 0 else None
+                element = post.safeLocator(TWITTER_POST_HREF, "Twitter -> Link do Post").first
                 datetime_str = element.safeLocator("time", "Data do Post").get_attribute("datetime") if element.locator("time").count() > 0 else None
                 post_datetime = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ") if datetime_str else "Sem data"
                 post_url = element.get_attribute("href")
@@ -82,11 +82,11 @@ class Twitter_Automation(PlayEssencial):
                     continue
                 processed_hrefs.add(post_url)          
                 post_metrics = convert_text_to_metrics(engagement_summary_str) if engagement_summary_str else {}
-                post_decription = post.safeLocator(TWITTER_DESCRIPTION, "Descrição do Post").inner_text() if post.locator(TWITTER_DESCRIPTION).count() > 0 else "Sem descrição"
+                post_decription = post.safeLocator(TWITTER_DESCRIPTION, "Twitter -> Descrição do Post").inner_text() if post.locator(TWITTER_DESCRIPTION).count() > 0 else "Sem descrição"
                 post_decription = re.sub(r'\s+', ' ', post_decription).strip() if post_decription else "Sem descrição"
                 if post_datetime < start_date:
                     continue_collecting = False
-                    print(f"Post de {post_datetime} está antes de {start_date}. Encerrando busca.")
+                    logger.info(f"Post de {post_datetime} está antes de {start_date}. Encerrando busca.")
                     break
                 if post_datetime >  end_date:
                     continue
