@@ -45,6 +45,6 @@ TWITTER_DESCRIPTION = '//div[@data-testid="tweetText"]'
 TIKTOK_FEED_CONTAINER = '//div[@id="main-content-others_homepage"]'
 """Seletor para o contêiner principal do feed"""
 
-TIKTOK_FEED_POST = '//div[@class="css-16cwaxc-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2 eip9vuq0"]'
+TIKTOK_FEED_POST = '//div[@class=\"css-1dreve0-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2 eip9vuq0\"]'
 """Seletor para cada post individual no feed"""
 

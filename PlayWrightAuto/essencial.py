@@ -60,7 +60,11 @@ class PlayEssencial:
             headless=False,
             executable_path= self.chrome_executable_path,
         )
-        self.page = self.browser.new_page()
+        pages = self.browser.pages
+        if pages:
+            self.page = pages[0]
+        else:
+            self.page = self.browser.new_page()
         
     def stop_browser(self):
         if self.browser:

@@ -1,4 +1,5 @@
-from playwright.async_api import async_playwright, Locator
+from playwright.async_api import async_playwright
+from components.PlayWrightAuto_async.locators import *
 import logging
 import asyncio
 from datetime import datetime
@@ -7,7 +8,7 @@ logging.basicConfig(
     level=logging.DEBUG,  
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("GLOBAL_LOGGER")
 
 
 class PlayEssencial:
@@ -20,8 +21,8 @@ class PlayEssencial:
         browser=None,
         page=None
     ):
-        print("PlayEssencial was initialized")
-        print("browser is : ", browser, "page is : ", page)
+        logger.info("PlayEssencial was initialized")
+        logger.info(f"browser is : {browser}, page is : {page}")
 
         self.current_url = url
         self.playwright = playwright
@@ -36,65 +37,40 @@ class PlayEssencial:
             return dt.replace(tzinfo=None)
         return dt
     
-    async def safe_locator(self, xmlPath: str, description="Não Definido") -> Locator:
-            """
-            Espera o locator aparecer. Se não aparecer, lança erro.
-            """
-            async def check_locator(xmlPath, description):
-                try:
-                    await self.page.wait_for_selector(xmlPath, timeout=5000)
-                    logging.info(f"Locator encontrado: {description}")
-                    return True
-                except Exception:
-                    logging.error(
-                        f"ERRO: O locator '{description}' não foi encontrado. "
-                        f"Path -> {xmlPath}"
-                    )
-                    return False
+    async def safe_locator(self, locator_key: str, description="Não Definido"):
+        locs = load_locators()  
+        locator_value = locs[locator_key]   
 
-            if not await check_locator(xmlPath, description):
-                raise Exception(
-                    f"ERRO: Não foi possível encontrar o locator '{description}'. "
-                    f"Path -> {xmlPath}"
-                )
-
-            return self.page.locator(xmlPath)
-
-    async def validate_locator(self, locator: str) -> str:
-        async def check_locator(locator: str, description="element"):
+        while True:
             try:
-                await self.page.wait_for_selector(locator, timeout=5000)
-                logging.info(f"Locator {description} encontrado: {locator}\n")
-                return True
-            except Exception as e:
-                logging.error(f"O locator {description} não foi encontrado: {locator}")
-                return False
+               
+                await self.page.wait_for_selector(locator_value, timeout=5000)
+                logging.info(f"Locator encontrado: {description}")
+                return self.page.locator(locator_value)
 
-        if not await check_locator(locator):
-            raise Exception(f"Os seguintes locators não foram encontrados: {locator}")
+            except Exception:
+                logging.error(
+                    f"Erro ao buscar locator '{locator_key}' ({description})\n"
+                    f"XPath atual: {locator_value}"
+                )
+                new_value = input(
+                    f"Digite o NOVO XPath/CSS para '{description}' (chave: {locator_key}): "
+                )
+                locs[locator_key] = new_value
+                save_locators(locs)
+                locator_value = new_value
 
-        return locator
-
-    # ---------------------------
-    # URL
-    # ---------------------------
     def set_url(self, url):
         if url is None:
             return
         self.current_url = url
-        print(f"{self.current_url} was set as current URL")
+        logger.info(f"{self.current_url} was set as current URL")
         return url
 
-    # ---------------------------
-    # PLAYWRIGHT
-    # ---------------------------
     async def start_async_playwright(self):
         if self.playwright is None:
             self.playwright = await async_playwright().start()
 
-    # ---------------------------
-    # BROWSER NORMAL
-    # ---------------------------
     async def start_browser(self):
         if self.playwright is None:
             await self.start_async_playwright()
@@ -104,9 +80,6 @@ class PlayEssencial:
         )
         self.page = await self.browser.new_page()
 
-    # ---------------------------
-    # BROWSER COM PERFIL
-    # ---------------------------
     async def start_browser_user(self):
         if self.playwright is None:
             await self.start_async_playwright()
@@ -119,9 +92,6 @@ class PlayEssencial:
 
         self.page = await self.browser.new_page()
 
-    # ---------------------------
-    # STOP
-    # ---------------------------
     async def stop_browser(self):
         if self.browser:
             await asyncio.sleep(0.1)

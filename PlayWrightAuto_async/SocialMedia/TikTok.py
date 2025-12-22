@@ -1,210 +1,180 @@
-import aiohttp
-import asyncio
-import json
+
 from datetime import datetime
-from typing import Generator, Union
-from components.PlayWrightAuto_async.essencial import PlayEssencial
+from components.PlayWrightAuto_async.essencial import PlayEssencial, logger
 from components.PlayWrightAuto_async.locators import *
+import aiohttp
+import json
 
 
 class Tiktok_Automation(PlayEssencial):
+    def __init__(self, account, playwright=None, browser_data_path=None,
+                 chrome_executable_path=None, browser=None, page=None):
 
-    def __init__(self, account, **kwargs):
         super().__init__(
-            f"https://tiktok.com/@{account}",
-            **kwargs
+            f"https://www.tiktok.com/@{account}",
+            playwright,
+            browser_data_path,
+            chrome_executable_path,
+            browser,
+            page
         )
-
-        self.account = account
 
         self.headers = {
             "authority": "www.tiktok.com",
-            "accept": "text/html",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+            "method": "GET",
+            "scheme": "https",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "accept-encoding": "gzip, deflate, br",
+            "cache-control": "max-age=0",
+            "priority": "u=0, i",
+            "sec-ch-ua": '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "document",
+            "sec-fetch-mode": "navigate",
+            "sec-fetch-site": "same-origin",
+            "sec-fetch-user": "?1",
+            "upgrade-insecure-requests": "1",
+            "user-agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/137.0.0.0 Safari/537.36"
+            )
         }
 
-    #############################
-    # ITERADOR DE LINKS
-    #############################
-    def iterate_video_links(self, result_info: dict) -> Generator[str, None, None]:
-        for key in list(result_info.keys()):
-            yield key
-
-    #############################
-    # EXTRAÇÃO DE STATS
-    #############################
-    def extract_sigi_state(self, html: str) -> dict:
-        """
-        Extrai o JSON SIGI_STATE que contém todas infos do vídeo.
-        Muito mais confiável que regex.
-        """
-        marker = "window['SIGI_STATE']="
-
-        pos = html.find(marker)
-        if pos == -1:
+    async def extract_text_between(self, html: str, start_marker: str, end_marker: str) -> dict:
+        start_index = html.find(start_marker)
+        if start_index == -1:
             return {}
 
-        start = pos + len(marker)
-        end = html.find("</script>", start)
-        block = html[start:end].strip()
+        end_index = html.find(end_marker, start_index)
+        if end_index == -1:
+            return {}
+
+        snippet = html[start_index:end_index]
 
         try:
-            return json.loads(block)
+            snippet = "{" + snippet + "}"
+            return json.loads(snippet)
         except Exception:
             return {}
 
-    #############################
-    # ANALISA DATA E STATS
-    #############################
-    def analyze_video_html(
-        self, link: str, html: str, result_info: dict,
-        start_date: datetime, end_date: datetime
-    ) -> Union[int, str]:
+    async def get_request_createdTime(
+        self,
+        status: int,
+        html: str,
+        result_info: dict,
+        start_date: datetime,
+        end_date: datetime
+    ):
 
-        data = self.extract_sigi_state(html)
+        logger.info(f"Status Code: {status}")
 
-        if not data or "ItemModule" not in data:
-            result_info[link]["date_created"] = "notFound"
+        findResp = html.find("webapp.video-detail") - 1
+
+        if findResp <= -1:
+            logger.warning("createTime not found")
+            result_info[self.current_url]["date_created"] = "notFound"
             return 1
 
-        # pega o ID do vídeo
-        item_module = data["ItemModule"]
-        video_ids = list(item_module.keys())
-        if not video_ids:
-            return 1
+        start_index = html[findResp:].find("createTime") + findResp - 1
+        end_index = html[start_index:].find(",") + start_index
 
-        video_id = video_ids[0]
-        info = item_module[video_id]
+        block = html[start_index:end_index]
+        timestamp = int(block.replace('"', '').removeprefix("createTime:"))
 
-        # data
-        ts = int(info.get("createTime", 0))
-        if ts == 0:
-            return 1
-
-        dt = datetime.fromtimestamp(ts)
-        dt = self.normalize_datetime(dt)
-
-        start_date = self.normalize_datetime(start_date)
-        end_date = self.normalize_datetime(end_date)
-
-        # lógica original
-        if dt < start_date:
+        processed_date = datetime.fromtimestamp(timestamp)
+        logger.info(f"Video date: {processed_date}")
+        if processed_date < start_date:
             return 0
-        if dt > end_date:
+        if processed_date > end_date:
             return 1
 
-        # stats
-        result_info[link].update({
-            "date_created": dt,
-            "digg_count": info.get("diggCount", "0"),
-            "share_count": info.get("shareCount", "0"),
-            "comment_count": info.get("commentCount", "0"),
-            "play_count": info.get("playCount", "0"),
-            "collect_count": info.get("collectCount", "0"),
-            "repost_count": info.get("repostCount", "0"),
+        response_data = await self.extract_text_between(html, '"statsV2":', ',"warnInfo"')
+        stats = response_data.get("statsV2", {})
+        result_info[self.current_url].update({
+            "date_created": processed_date,
+            "digg_count": stats.get("diggCount", "0"),
+            "share_count": stats.get("shareCount", "0"),
+            "comment_count": stats.get("commentCount", "0"),
+            "play_count": stats.get("playCount", "0"),
+            "collect_count": stats.get("collectCount", "0"),
+            "repost_count": stats.get("repostCount", "0"),
         })
+        return self.current_url
 
-        return link
+    async def access_videos(self, result_info: dict, start_date: datetime, end_date: datetime) -> dict:
+        all_videos = []
+        counter = 0
+        async with aiohttp.ClientSession(headers=self.headers) as session:
+            for link in result_info.keys():
+                self.set_url(link)
+                logger.info(f"Fetching: {self.current_url}")
+                async with session.get(self.current_url) as resp:
+                    html = await resp.text()
+                element_vid = await self.get_request_createdTime(
+                    resp.status,
+                    html,
+                    result_info,
+                    start_date,
+                    end_date
+                )
+                if element_vid not in (0, 1):
+                    all_videos.append(element_vid)
 
-    #############################
-    # FETCH DO VÍDEO
-    #############################
-    async def fetch_video(self, session, sem, link, result_info, start_date, end_date):
-        async with sem:
-            async with session.get(link, headers=self.headers) as resp:
-                html = await resp.text()
+                if element_vid == 0 and counter > 3:
+                    break
+                counter += 1
+        return {k: v for k, v in result_info.items() if k in all_videos}
 
-        result = self.analyze_video_html(link, html, result_info, start_date, end_date)
-        return result
-
-    #############################
-    # PROCESSA TODOS OS VÍDEOS
-    #############################
-    async def access_videos(self, result_info: dict,
-                            start_date: datetime, end_date: datetime) -> dict:
-
-        start_date = self.normalize_datetime(start_date)
-        end_date = self.normalize_datetime(end_date)
-
-        sem = asyncio.Semaphore(5)
-        results = []
-
-        async with aiohttp.ClientSession() as session:
-
-            tasks = [
-                self.fetch_video(session, sem, link, result_info, start_date, end_date)
-                for link in self.iterate_video_links(result_info)
-            ]
-
-            responses = await asyncio.gather(*tasks)
-
-            for element_vid in responses:
-
-                if element_vid in (0, 1):
-                    continue
-
-                if isinstance(element_vid, str):
-                    results.append(element_vid)
-
-        return {k: v for k, v in result_info.items() if k in results}
-
-    #############################
-    # FEED DO PERFIL
-    #############################
     async def get_feed_info(self) -> dict:
-
         result_info = {}
-
         if not self.page:
-            raise Exception("Browser not initialized")
-
-        await self.page.goto(self.current_url, wait_until="networkidle", timeout=60000)
-        input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
-        await self.safe_locator(TIKTOK_FEED_CONTAINER, "Container do Feed")
-        await self.safe_locator(TIKTOK_FEED_POST, "Post do Feed")
-        input("VERIFY IF THE LOCATORS WERE FOUND. THEN, PRESS ENTER TO CONTINUE")
-        feed = self.page.locator(TIKTOK_FEED_CONTAINER)
-        items = feed.locator(TIKTOK_FEED_POST)
-
+            raise Exception("Browser or page not initialized. Call start_browser_user() first.")
+        await self.page.goto(self.current_url, timeout=30000)
+        input("Press Enter after the page has loaded...")
+        await self.safe_locator("TIKTOK_FEED_CONTAINER", "Container do Feed")
+        await self.safe_locator("TIKTOK_FEED_POST", "Post do Feed")
+        locs = load_locators()
+        feed = self.page.locator(locs["TIKTOK_FEED_CONTAINER"])
+        items = feed.locator(locs["TIKTOK_FEED_POST"])
         count = await items.count()
-
         for i in range(count):
             item = items.nth(i)
 
-            # pega o href real
             anchor = item.locator("a")
-            href = await anchor.evaluate("(el) => el.href")
+            href = await anchor.get_attribute("href")
 
-            desc = await item.locator("img").get_attribute("alt") or ""
+            img = item.locator("img")
+            alt_text = await img.get_attribute("alt")
 
-            if href:
-                result_info[href] = {"description": desc}
+            result_info[href] = {"description": alt_text}
 
         return result_info
 
-    #############################
-    # PROCEDIMENTO PADRÃO
-    #############################
     async def standard_procedure(self, dates: list[datetime]) -> dict:
         try:
             if self.browser is None:
                 await self.start_browser_user()
 
-            feed_data = await self.get_feed_info()
-            videos = await self.access_videos(feed_data, dates[0], dates[1])
-            return videos
+            data = await self.get_feed_info()
+
+            filtered = await self.access_videos(data, dates[0], dates[1])
+            logger.info("Procedure completed.")
+
+            return filtered
 
         finally:
-            await self.stop_browser()
+            await self._shutdown()
 
-    #############################
-    # STOP BROWSER
-    #############################
-    async def stop_browser(self):
-        if self.page:
-            await self.page.close()
-        if self.browser:
-            await self.browser.close()
-        if self.playwright:
-            await self.playwright.stop()
-            self.playwright = None
+    async def _shutdown(self):
+        try:
+            if self.page:
+                await self.page.close()
+            if self.browser:
+                await self.browser.close()
+            if hasattr(self, "playwright") and self.playwright:
+                await self.playwright.stop()
+        except:
+            pass

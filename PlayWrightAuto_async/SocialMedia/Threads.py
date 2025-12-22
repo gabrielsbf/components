@@ -1,15 +1,6 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
-from components.PlayWrightAuto.locators import *
+from components.PlayWrightAuto_async.essencial import PlayEssencial, logger
+from components.PlayWrightAuto_async.locators import *
 from datetime import datetime
-import logging
-
-
-logging.basicConfig(
-    level=logging.DEBUG,  
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 
 class Threads_Automation(PlayEssencial):
     def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
@@ -34,8 +25,9 @@ class Threads_Automation(PlayEssencial):
         await self.page.goto(self.current_url, timeout=50000)
         await self.page.wait_for_load_state('domcontentloaded')
         await self.page.wait_for_timeout(5000)
-
-        feed = self.page.safeLocator(THREADS_FEED, "Feed dos Posts - Geral")
+        locs = load_locators()
+        await self.safe_locator("THREADS_FEED", "Feed dos Posts - Geral")
+        feed = self.page.locator(locs["THREADS_FEED"])
 
         since = since if isinstance(since, datetime) else datetime.strptime(since, "%d/%m/%Y")
         until = until if isinstance(until, datetime) else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
@@ -47,7 +39,9 @@ class Threads_Automation(PlayEssencial):
             await self.page.mouse.wheel(0, 1000)
             await self.page.wait_for_timeout(500)
 
-            posts = feed.safeLocator(THREADS_FEED_POST, "Posts Individuais")
+            await self.safe_locator("THREADS_FEED_POST", "Posts Individuais")
+            posts = feed.locator(locs["THREADS_FEED_POST"])
+            
             count = await posts.count()
             last_post = posts.nth(count - 1)
 
@@ -59,21 +53,21 @@ class Threads_Automation(PlayEssencial):
                 if last_date < since:
                     break
 
-        posts = feed.safeLocator(THREADS_FEED_POST, "Posts Individuais")
+        posts = feed.locator(locs["THREADS_FEED_POST"]) 
+        
         count = await posts.count()
 
         for i in range(count):
             post = posts.nth(i)
-
-            metrics_text = await post.safeLocator(
-                THREADS_METRICS, "Métricas"
-            ).all_inner_texts()
-
-            href = await post.safeLocator(
-                THREADS_POST_HREF, "Link"
-            ).get_attribute("href")
-
-            description_locator = post.safeLocator(THREADS_DESCRIPTION, "Descrição")
+            await self.safe_locator("THREADS_METRICS", "Métricas")
+            await self.safe_locator("THREADS_POST_HREF", "Link")
+            await self.safe_locator("THREADS_DESCRIPTION", "Descrição")
+            metrics_text = await post.locator(locs["THREADS_METRICS"]).all_inner_texts()
+            href_locator = post.locator(locs["THREADS_POST_HREF"])
+            href = await href_locator.get_attribute("href")
+            description_locator = post.locator(locs["THREADS_DESCRIPTION"])
+            
+            
             description = (
                 await description_locator.text_content()
                 if await description_locator.count() > 0
@@ -87,12 +81,39 @@ class Threads_Automation(PlayEssencial):
                 last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
 
                 if since <= last_date <= until:
-                    filtered_posts.append({
-                        href: {
+                    filtered_posts.append({f"https://www.threads.net{href}":
+                        {
                             "Descrição": description,
                             "Data": last_date.strftime("%d/%m/%Y %H:%M:%S"),
-                            **metrics
+                            "Curtidas": metrics.get("Curtidas", 0),
+                            "Comentários": metrics.get("Comentários", 0),
+                            "Visualizações": metrics.get("Visualizações", 0),
+                            "Repostados": metrics.get("Repostados", 0),
+                            "Compartilhamentos": metrics.get("Compartilhamentos", 0)
                         }
                     })
 
         return filtered_posts
+    
+    async def standard_procedure(self, dates: list[datetime]) -> dict:
+        try:
+            if self.browser is None:
+                await self.start_browser_user()
+            data = await self.get_href(dates[0], dates[1])
+            logger.info("Procedure completed.")
+
+            return data
+
+        finally:
+            await self._shutdown()
+
+    async def _shutdown(self):
+        try:
+            if self.page:
+                await self.page.close()
+            if self.browser:
+                await self.browser.close()
+            if hasattr(self, "playwright") and self.playwright:
+                await self.playwright.stop()
+        except:
+            pass

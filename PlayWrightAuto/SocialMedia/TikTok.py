@@ -1,11 +1,10 @@
-from components.PlayWrightAuto.essencial import PlayEssencial
+from components.PlayWrightAuto.essencial import PlayEssencial, logger
 from components.PlayWrightAuto.locators import *
 from requests import Response
 from datetime import datetime
 from typing import Union, Generator
 import json
 import requests
-
 class Tiktok_Automation(PlayEssencial):
 	def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
 		super().__init__("https://tiktok.com/@" + account, playwright, browser_data_path, chrome_executable_path, browser, page)
@@ -51,9 +50,9 @@ class Tiktok_Automation(PlayEssencial):
 		start_index = response.text.find(start_maker)
 		end_index = response.text[start_index:].find(end_maker) + start_index
 		snippet = response.text[start_index:end_index]
-		print("Snippet is >>>", snippet)
+		
 		if not snippet:
-			print("Snippet is empty")
+			logger.warning("Snippet is empty")
 			return {}
 		else:
 			snippet = "{" + snippet + "}"
@@ -61,41 +60,10 @@ class Tiktok_Automation(PlayEssencial):
 		return json_data
 
 	def get_request_createdTime(self, response : Response, result_info: dict, start_date : datetime, end_date : datetime) -> Union[int, str]:
-		"""
-				Processes the response to extract the video's creation timestamp and basic statistics.
-
-				This function performs the following:
-				- Locates and parses the "createTime" timestamp from the response.
-				- Converts the timestamp into a datetime object.
-				- Compares the date to a given range (start_date and end_date).
-					- If it's before the range, returns 0.
-					- If it's after the range, returns 1.
-				- If the date is within the range:
-					- Extracts statistics from the "statsV2" field (likes, shares, comments, etc.).
-					- Updates the result_info dictionary at the key `self.current_url` with:
-						- "digg_count"
-						- "share_count"
-						- "comment_count"
-						- "play_count"
-						- "collect_count"
-						- "repost_count"
-
-				Args:
-					response (Response): The HTTP response object containing video data.
-					result_info (dict): A dictionary to store results, organized by URL.
-					start_date (datetime): The lower bound of the date filter.
-					end_date (datetime): The upper bound of the date filter.
-
-				Returns:
-					Union[int, str]:
-						- 0 if the creation date is before the start_date.
-						- 1 if the creation date is after the end_date.
-						- The current URL (self.current_url) if the date is within the range.
-		"""
-		print(f"Status Code: {response.status_code}")
+		logger.info(f"Status Code: {response.status_code}")
 		findResp = response.text.find("webapp.video-detail") - 1
 		if findResp <= -1:
-			print("not found")
+			logger.warning("createTime not found")
 			result_info[self.current_url]["date_created"] = "notFound"
 		else:
 			start_index = response.text[findResp:].find("createTime") + findResp - 1
@@ -103,7 +71,7 @@ class Tiktok_Automation(PlayEssencial):
 			result = response.text[start_index:end]
 			result = int(str(result.replace('"', '')).removeprefix("createTime:"))
 			processed_date = datetime.fromtimestamp(result)
-			print(processed_date)
+			logger.info(f"Video date: {processed_date}")
 			if processed_date < start_date:
 				return (0)
 			if processed_date > end_date:
@@ -136,8 +104,7 @@ class Tiktok_Automation(PlayEssencial):
 		counter = 0
 		for link in self.iterate_video_links(result_info):
 			self.set_url(link)
-			
-			print('entrei')
+			logger.info(f"Fetching: {self.current_url}")
 			response = requests.get(self.current_url, headers=self.headers)
 			element_vid = self.get_request_createdTime(response, result_info, start_date, end_date)
 			if (element_vid != 0 and element_vid != 1):
@@ -166,7 +133,6 @@ class Tiktok_Automation(PlayEssencial):
 		for i in range(count):
 			item = items.nth(i)
 			result_info[item.locator("a").get_attribute("href")] = {"description": item.locator("img").get_attribute("alt")}
-			print(result_info)
 		return result_info
 
 	def standard_procedure(self, dates: list[datetime])-> dict:
@@ -180,7 +146,7 @@ class Tiktok_Automation(PlayEssencial):
 		if self.browser == None: 
 			self.start_browser_user()
 		data = self.get_feed_info()
-		print("FEED DATA -> ", data)
 		value = self.access_videos(data, dates[0], dates[1])
-		print(value)
+		logger.info("Procedure completed.")
+		logger.info(f"Result: {value}")
 		return value
