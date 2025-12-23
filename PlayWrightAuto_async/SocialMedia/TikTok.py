@@ -1,9 +1,9 @@
-
 from datetime import datetime
 from components.PlayWrightAuto_async.essencial import PlayEssencial, logger
 from components.PlayWrightAuto_async.locators import *
 import aiohttp
 import json
+import asyncio
 
 
 class Tiktok_Automation(PlayEssencial):
@@ -86,6 +86,7 @@ class Tiktok_Automation(PlayEssencial):
 
         processed_date = datetime.fromtimestamp(timestamp)
         logger.info(f"Video date: {processed_date}")
+
         if processed_date < start_date:
             return 0
         if processed_date > end_date:
@@ -93,6 +94,7 @@ class Tiktok_Automation(PlayEssencial):
 
         response_data = await self.extract_text_between(html, '"statsV2":', ',"warnInfo"')
         stats = response_data.get("statsV2", {})
+
         result_info[self.current_url].update({
             "date_created": processed_date,
             "digg_count": stats.get("diggCount", "0"),
@@ -107,25 +109,43 @@ class Tiktok_Automation(PlayEssencial):
     async def access_videos(self, result_info: dict, start_date: datetime, end_date: datetime) -> dict:
         all_videos = []
         counter = 0
-        async with aiohttp.ClientSession(headers=self.headers) as session:
-            for link in result_info.keys():
-                self.set_url(link)
-                logger.info(f"Fetching: {self.current_url}")
-                async with session.get(self.current_url) as resp:
-                    html = await resp.text()
-                element_vid = await self.get_request_createdTime(
-                    resp.status,
-                    html,
-                    result_info,
-                    start_date,
-                    end_date
-                )
-                if element_vid not in (0, 1):
-                    all_videos.append(element_vid)
 
-                if element_vid == 0 and counter > 3:
-                    break
-                counter += 1
+        sem = asyncio.Semaphore(5)
+
+        async with aiohttp.ClientSession(headers=self.headers) as session:
+
+            async def process_video(link):
+                nonlocal counter
+                async with sem:
+                    self.set_url(link)
+                    logger.info(f"Fetching: {self.current_url}")
+
+                    async with session.get(self.current_url) as resp:
+                        html = await resp.text()
+
+                    result = await self.get_request_createdTime(
+                        resp.status,
+                        html,
+                        result_info,
+                        start_date,
+                        end_date
+                    )
+
+                    if result not in (0, 1):
+                        all_videos.append(result)
+
+                    if result == 0 and counter > 3:
+                        return "STOP"
+                    counter += 1
+
+                    return result
+
+            tasks = [process_video(link) for link in result_info.keys()]
+            results = await asyncio.gather(*tasks)
+
+            if "STOP" in results:
+                logger.info("STOP signal received, stopping early.")
+
         return {k: v for k, v in result_info.items() if k in all_videos}
 
     async def get_feed_info(self) -> dict:
@@ -142,13 +162,10 @@ class Tiktok_Automation(PlayEssencial):
         count = await items.count()
         for i in range(count):
             item = items.nth(i)
-
             anchor = item.locator("a")
             href = await anchor.get_attribute("href")
-
             img = item.locator("img")
             alt_text = await img.get_attribute("alt")
-
             result_info[href] = {"description": alt_text}
 
         return result_info
