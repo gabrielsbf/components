@@ -60,7 +60,7 @@ class PlayEssencial:
                 save_locators(locs)
                 locator_value = new_value
 
-    def set_url(self, url):
+    async def set_url(self, url):
         if url is None:
             return
         self.current_url = url
