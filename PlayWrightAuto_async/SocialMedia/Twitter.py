@@ -32,7 +32,6 @@ class Twitter_Automation(PlayEssencial):
         await self.page.wait_for_timeout(5000)
 
         locs = load_locators()
-        input("Press Enter after the page has loaded...")
 
         await self.safe_locator("TWITTER_FEED_CONTAINER", "Container do Feed")
         await self.page.wait_for_selector(locs["TWITTER_FEED_CONTAINER"], timeout=30000)

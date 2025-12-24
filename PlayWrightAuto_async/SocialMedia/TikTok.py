@@ -117,7 +117,7 @@ class Tiktok_Automation(PlayEssencial):
             async def process_video(link):
                 nonlocal counter
                 async with sem:
-                    self.set_url(link)
+                    await self.set_url(link)
                     logger.info(f"Fetching: {self.current_url}")
 
                     async with session.get(self.current_url) as resp:
@@ -146,7 +146,7 @@ class Tiktok_Automation(PlayEssencial):
             if "STOP" in results:
                 logger.info("STOP signal received, stopping early.")
 
-        return {k: v for k, v in result_info.items() if k in all_videos}
+        return [{k: v for k, v in result_info.items() if k in all_videos}]
 
     async def get_feed_info(self) -> dict:
         result_info = {}
