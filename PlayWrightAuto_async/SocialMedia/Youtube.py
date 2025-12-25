@@ -9,15 +9,19 @@ from components.PlayWrightAuto.locators import *
 
 class Youtube_Automation(PlayEssencial):
 
-    def __init__(self, account: str, **kwargs):
-        super().__init__("https://www.youtube.com/", **kwargs)
+    def __init__(self, account: str, core):
+        self.playwright = core.playwright
+        self.browser = core.browser
+        self.page = core.page
+        self.browser_data_path = core.browser_data_path
+        self.chrome_executable_path = core.chrome_executable_path
         self.account = account
-
+        self.current_url = f"https://www.youtube.com/{self.account}"
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
             "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
         }
-
+        
     @staticmethod
     def extract_between(text, start, end):
         start_i = text.find(start)
@@ -83,8 +87,8 @@ class Youtube_Automation(PlayEssencial):
 
         return {
             "href": video["href"],
-            "title": video["title"],
-            "date": processed_date,
+            "description": video["title"],
+            "date_create": processed_date,
             "likes": likes,
             "comments": comments[0] if comments else "0",
             "views": views[0] if views else "0",
@@ -113,23 +117,6 @@ class Youtube_Automation(PlayEssencial):
         return [results]
 
     async def standard_procedure(self, dates: list[datetime]) -> dict:
-            try:
-                if self.browser is None:
-                    await self.start_browser_user()
                 data = await self.scrape_videos_by_date(dates[0], dates[1])
                 logger.info("Procedure completed.")
                 return data
-
-            finally:
-                await self._shutdown()
-
-    async def _shutdown(self):
-        try:
-            if self.page:
-                await self.page.close()
-            if self.browser:
-                await self.browser.close()
-            if hasattr(self, "playwright") and self.playwright:
-                await self.playwright.stop()
-        except:
-            pass

@@ -7,17 +7,13 @@ import asyncio
 
 
 class Tiktok_Automation(PlayEssencial):
-    def __init__(self, account, playwright=None, browser_data_path=None,
-                 chrome_executable_path=None, browser=None, page=None):
-
-        super().__init__(
-            f"https://www.tiktok.com/@{account}",
-            playwright,
-            browser_data_path,
-            chrome_executable_path,
-            browser,
-            page
-        )
+    def __init__(self, account, core):
+        self.playwright = core.playwright
+        self.browser = core.browser
+        self.page = core.page
+        self.browser_data_path = core.browser_data_path
+        self.chrome_executable_path = core.chrome_executable_path
+        self.current_url = f"https://www.tiktok.com/@{account}"
 
         self.headers = {
             "authority": "www.tiktok.com",
@@ -97,15 +93,38 @@ class Tiktok_Automation(PlayEssencial):
 
         result_info[self.current_url].update({
             "date_created": processed_date,
-            "digg_count": stats.get("diggCount", "0"),
-            "share_count": stats.get("shareCount", "0"),
-            "comment_count": stats.get("commentCount", "0"),
-            "play_count": stats.get("playCount", "0"),
-            "collect_count": stats.get("collectCount", "0"),
-            "repost_count": stats.get("repostCount", "0"),
+            "likes": stats.get("diggCount", "0"),
+            "comments": stats.get("commentCount", "0"),
+            "shares": stats.get("shareCount", "0"),
+            "views": stats.get("playCount", "0"),
+            "save": stats.get("collectCount", "0"),
+            "reposts": stats.get("repostCount", "0"),
         })
         return self.current_url
 
+
+    async def get_feed_info(self) -> dict:
+        result_info = {}
+        if not self.page:
+            raise Exception("Browser or page not initialized. Call start_browser_user() first.")
+        await self.page.goto(self.current_url, timeout=30000)
+        input("Press Enter after the page has loaded...")
+        await self.safe_locator("TIKTOK_FEED_CONTAINER", "Container do Feed")
+        await self.safe_locator("TIKTOK_FEED_POST", "Post do Feed")
+        locs = load_locators()
+        feed = self.page.locator(locs["TIKTOK_FEED_CONTAINER"])
+        items = feed.locator(locs["TIKTOK_FEED_POST"])
+        count = await items.count()
+        for i in range(count):
+            item = items.nth(i)
+            anchor = item.locator("a")
+            href = await anchor.get_attribute("href")
+            img = item.locator("img")
+            alt_text = await img.get_attribute("alt")
+            result_info[href] = {"description": alt_text}
+
+        return result_info
+    
     async def access_videos(self, result_info: dict, start_date: datetime, end_date: datetime) -> dict:
         all_videos = []
         counter = 0
@@ -148,50 +167,12 @@ class Tiktok_Automation(PlayEssencial):
 
         return [{k: v for k, v in result_info.items() if k in all_videos}]
 
-    async def get_feed_info(self) -> dict:
-        result_info = {}
-        if not self.page:
-            raise Exception("Browser or page not initialized. Call start_browser_user() first.")
-        await self.page.goto(self.current_url, timeout=30000)
-        input("Press Enter after the page has loaded...")
-        await self.safe_locator("TIKTOK_FEED_CONTAINER", "Container do Feed")
-        await self.safe_locator("TIKTOK_FEED_POST", "Post do Feed")
-        locs = load_locators()
-        feed = self.page.locator(locs["TIKTOK_FEED_CONTAINER"])
-        items = feed.locator(locs["TIKTOK_FEED_POST"])
-        count = await items.count()
-        for i in range(count):
-            item = items.nth(i)
-            anchor = item.locator("a")
-            href = await anchor.get_attribute("href")
-            img = item.locator("img")
-            alt_text = await img.get_attribute("alt")
-            result_info[href] = {"description": alt_text}
-
-        return result_info
 
     async def standard_procedure(self, dates: list[datetime]) -> dict:
-        try:
-            if self.browser is None:
-                await self.start_browser_user()
-
+        
             data = await self.get_feed_info()
 
             filtered = await self.access_videos(data, dates[0], dates[1])
             logger.info("Procedure completed.")
 
             return filtered
-
-        finally:
-            await self._shutdown()
-
-    async def _shutdown(self):
-        try:
-            if self.page:
-                await self.page.close()
-            if self.browser:
-                await self.browser.close()
-            if hasattr(self, "playwright") and self.playwright:
-                await self.playwright.stop()
-        except:
-            pass

@@ -4,10 +4,15 @@ from datetime import datetime
 import asyncio
 
 class Threads_Automation(PlayEssencial):
-    def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
+    def __init__(self, account, core):
         self.account = account
-        super().__init__(f'https://www.threads.net/{self.account}', playwright, browser_data_path, chrome_executable_path, browser, page)
-
+        self.playwright = core.playwright
+        self.browser = core.browser
+        self.page = core.page
+        self.browser_data_path = core.browser_data_path
+        self.chrome_executable_path = core.chrome_executable_path
+        self.current_url = f"https://www.threads.net/@{self.account}"
+        
     async def get_href(self, since: str | datetime, until: str | datetime) -> list[dict]:
 
         def convert_text_to_metrics(metrics_text: list) -> dict:
@@ -85,18 +90,19 @@ class Threads_Automation(PlayEssencial):
                     return None
 
                 post_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-
+                date = post_date.strftime("%d/%m/%Y %H:%M:%S")
+            
+                
                 if since <= post_date <= until:
                     return {
-                        f"https://www.threads.net{href}": {
-                            "Descrição": description,
-                            "Data": post_date.strftime("%d/%m/%Y %H:%M:%S"),
-                            "Curtidas": metrics.get("Curtidas", 0),
-                            "Comentários": metrics.get("Comentários", 0),
-                            "Visualizações": metrics.get("Visualizações", 0),
-                            "Repostados": metrics.get("Repostados", 0),
-                            "Compartilhamentos": metrics.get("Compartilhamentos", 0),
-                        }
+                    'date_created': date,
+                    'description': description,
+                    'link_url': f"https://www.threads.net{href}",
+                    'visualizations': metrics.get("Visualizações", 0),
+                    'likes': metrics.get("Curtidas", 0),
+                    'comments': metrics.get("Comentários", 0),
+                    'reposts': metrics.get("Repostados", 0),
+                    'shares': metrics.get("Compartilhamentos", 0),
                     }
 
                 return None
@@ -110,23 +116,6 @@ class Threads_Automation(PlayEssencial):
         return filtered_posts
 
     async def standard_procedure(self, dates: list[datetime]) -> dict:
-        try:
-            if self.browser is None:
-                await self.start_browser_user()
             data = await self.get_href(dates[0], dates[1])
             logger.info("Procedure completed.")
             return data
-
-        finally:
-            await self._shutdown()
-
-    async def _shutdown(self):
-        try:
-            if self.page:
-                await self.page.close()
-            if self.browser:
-                await self.browser.close()
-            if hasattr(self, "playwright") and self.playwright:
-                await self.playwright.stop()
-        except:
-            pass

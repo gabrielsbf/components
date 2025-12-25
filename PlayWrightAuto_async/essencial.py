@@ -71,15 +71,6 @@ class PlayEssencial:
         if self.playwright is None:
             self.playwright = await async_playwright().start()
 
-    async def start_browser(self):
-        if self.playwright is None:
-            await self.start_async_playwright()
-
-        self.browser = await self.playwright.chromium.launch(
-            headless=False
-        )
-        self.page = await self.browser.new_page()
-
     async def start_browser_user(self):
         if self.playwright is None:
             await self.start_async_playwright()
@@ -91,6 +82,10 @@ class PlayEssencial:
         )
 
         self.page = await self.browser.new_page()
+        
+    async def ensure_browser_started(self):
+        if self.browser is None or self.page is None:
+            await self.start_browser_user()
 
     async def stop_browser(self):
         if self.browser:

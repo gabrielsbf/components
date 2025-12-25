@@ -6,9 +6,14 @@ import re
 
 
 class Twitter_Automation(PlayEssencial):
-    def __init__(self, account, playwright=None, browser_data_path=None, chrome_executable_path=None, browser=None, page=None):
+    def __init__(self, account, core):
         self.account = account
-        super().__init__(f"https://www.x.com/{self.account}", playwright, browser_data_path, chrome_executable_path, browser, page)
+        self.playwright = core.playwright
+        self.browser = core.browser
+        self.page = core.page
+        self.browser_data_path = core.browser_data_path
+        self.chrome_executable_path = core.chrome_executable_path
+        self.current_url = f"https://www.x.com/{self.account}"
 
     async def collect_filtered_post_links(self, start_date: datetime, end_date: datetime) -> list[dict]:
 
@@ -96,12 +101,12 @@ class Twitter_Automation(PlayEssencial):
 
                 return {
                     f"https://www.x.com{post_url}": {
-                        "Descrição": post_description,
-                        "Data": post_datetime,
-                        "Comentários": post_metrics.get("respostas", 0),
-                        "Compartilhamentos": post_metrics.get("reposts", 0),
-                        "Curtidas": post_metrics.get("curtidas", 0),
-                        "Visualizações": post_metrics.get("visualizações", 0),
+                        "description": post_description,
+                        "date_create": post_datetime,
+                        "comments": post_metrics.get("respostas", 0),
+                        "shares": post_metrics.get("reposts", 0),
+                        "likes": post_metrics.get("curtidas", 0),
+                        "views": post_metrics.get("visualizações", 0),
                     }
                 }
 
@@ -129,23 +134,7 @@ class Twitter_Automation(PlayEssencial):
         return filtered_posts
 
     async def standard_procedure(self, dates: list[datetime]) -> dict:
-        try:
-            if self.browser is None:
-                await self.start_browser_user()
             data = await self.collect_filtered_post_links(dates[0], dates[1])
             logger.info("Procedure completed.")
             return data
 
-        finally:
-            await self._shutdown()
-
-    async def _shutdown(self):
-        try:
-            if self.page:
-                await self.page.close()
-            if self.browser:
-                await self.browser.close()
-            if hasattr(self, "playwright") and self.playwright:
-                await self.playwright.stop()
-        except:
-            pass
