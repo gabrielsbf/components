@@ -90,12 +90,12 @@ class Threads_Automation(PlayEssencial):
                     return None
 
                 post_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-                date = post_date.strftime("%d/%m/%Y %H:%M:%S")
+                # date = post_date.strftime("%d/%m/%Y %H:%M:%S")
             
                 
                 if since <= post_date <= until:
                     return {
-                    'date_created': date,
+                    'date_created': post_date,
                     'description': description,
                     'link_url': f"https://www.threads.net{href}",
                     'visualizations': metrics.get("Visualizações", 0),

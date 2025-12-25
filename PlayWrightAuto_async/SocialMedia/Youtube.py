@@ -88,7 +88,7 @@ class Youtube_Automation(PlayEssencial):
         return {
             "href": video["href"],
             "description": video["title"],
-            "date_create": processed_date,
+            "date_created": processed_date,
             "likes": likes,
             "comments": comments[0] if comments else "0",
             "views": views[0] if views else "0",

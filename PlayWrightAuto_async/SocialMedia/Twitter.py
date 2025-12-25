@@ -102,7 +102,7 @@ class Twitter_Automation(PlayEssencial):
                 return {
                     f"https://www.x.com{post_url}": {
                         "description": post_description,
-                        "date_create": post_datetime,
+                        "date_created": post_datetime,
                         "comments": post_metrics.get("respostas", 0),
                         "shares": post_metrics.get("reposts", 0),
                         "likes": post_metrics.get("curtidas", 0),
