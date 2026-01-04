@@ -6,6 +6,7 @@ from requests import Response
 import logging
 import requests
 import re
+from components.PlayWrightAuto.LocatorImport import *
 
 logging.basicConfig(
     level=logging.DEBUG,  
@@ -59,14 +60,21 @@ class Youtube_Automation(PlayEssencial):
             input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
             self.page.wait_for_load_state("domcontentloaded")
             self.page.wait_for_timeout(3000)
-            youtube_container = self.page.safeLocator(YOUTUBE_VIDEO_CONTAINER, "Container de Vídeos do YouTube")
-            hrefs = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.href)')
-            titles = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.title)')
+            youtube_container = self.page.safeLocator(YOUTUBE_VIDEO_CONTAINER, "Links Individuais de cada post")
+            logger.info(f"Extraindo... -> Locators encontrados: {youtube_container.count()}")
+            hrefs = [posts.get_attribute("href") for posts in youtube_container.all()]
+            # hrefs = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.href)')
+            logger.info("hrefs extraídos.")
+            titles = youtube_container.all_inner_texts()
+            # titles = self.page.eval_on_selector_all(youtube_container, '(links) => links.map(link => link.title)')
+            logger.info("titles extraídos.")
             logger.info(f"HREFS: {hrefs} - TITLES:{titles}\n")
             [video_info.append(info) for info in zip(hrefs, titles)]
             
         extract_hrefs(self.current_url + self.account + '/videos')
+        logger.info("Extração da aba de vídeos concluída. Iniciando extração da aba de transmissões...")
         extract_hrefs('https://www.youtube.com/c/'+ self.account + '/streams')
+        logger.info("Extração da aba de transmissões concluída.")
         for href, title in video_info:
             yield {"title": title, "href": href}
 
@@ -85,7 +93,10 @@ class Youtube_Automation(PlayEssencial):
             snippet = response.text[start_index:end_index]
             snippet = str(snippet.replace('"', '')).removeprefix(start_maker.replace('"', ''))
             return snippet
+        
         for video in self.get_video_content():
+            video["href"] = f"https://www.youtube.com{video['href']}"
+            logger.info(f"Accessing video: {video['title']} - Link: {video['href']}")
             self.set_url(video['href'])
             try:
                 response = requests.get(self.current_url, headers=self.headers)
@@ -98,17 +109,19 @@ class Youtube_Automation(PlayEssencial):
             comments_raw = extract_text_between(response, '"contextualInfo":', ",")
             views_raw = extract_text_between(response, '"views":', ",")
             likes = extract_text_between(response, '"likeCount":', ",")
-
             comments = re.findall(r"\d+", comments_raw)
             views = re.findall(r"\d+(?:[\.,]\d+)?", views_raw)
 
             comments_count = comments[0] if comments else "0"
             views_count = views[0] if views else "0"
+            logger.info("data extracted from video page.")
 
             if processed_date > end_date:
+                logger.info(f"Video date {processed_date} is after end date {end_date}. Skipping...")
                 continue
             if processed_date < start_date:
-                break
+                logger.info(f"Video date {processed_date} is before start date {start_date}. Stopping further checks.")
+                continue
             filtered_videos[video['href']] = {"title": video['title'], 
                                          "date": processed_date, 
                                          "likes" : likes, 

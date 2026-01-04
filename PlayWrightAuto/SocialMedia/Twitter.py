@@ -56,6 +56,7 @@ class Twitter_Automation(PlayEssencial):
         self.set_url(self.current_url)
         self.page.goto(self.current_url, timeout=50000)
         self.page.wait_for_load_state('domcontentloaded', timeout=50000)
+        self.page.wait_for_timeout(5000)
         feed_container = self.page.safeLocator(TWITTER_FEED_CONTAINER, "Container de Feed do Twitter")
         logger.info('Iniciando coleta de posts...')
         total_posts = feed_container.count()
@@ -63,7 +64,7 @@ class Twitter_Automation(PlayEssencial):
         filtered_posts = []
         continue_collecting = True
         while continue_collecting:
-            self.page.mouse.wheel(0, 1000)
+            self.page.mouse.wheel(0, 2000)
             self.page.wait_for_timeout(500)
             posts = feed_container.safeLocator('//article', "Posts do Twitter")
             total_posts = posts.count()
@@ -74,21 +75,24 @@ class Twitter_Automation(PlayEssencial):
             for i in range(total_posts):
                 post = posts.nth(i)
                 engagement_summary_str = post.safeLocator(TWITTER_METRICS, "Twitter -> Métricas do Post").get_attribute("aria-label") if post.locator(TWITTER_METRICS).count() > 0 else None
-                element = post.safeLocator(TWITTER_POST_HREF, "Twitter -> Link do Post").first
-                datetime_str = element.safeLocator("time", "Data do Post").get_attribute("datetime") if element.locator("time").count() > 0 else None
+                # element = post.safeLocator(TWITTER_POST_HREF, "Twitter -> Link do Post")
+                datetime_str = post.safeLocator("time", "Data do Post") if post.locator("time").count() > 0 else None
+                try: datetime_str =  datetime_str.get_attribute("datetime") if datetime_str else None
+                except: datetime_str = datetime_str
                 post_datetime = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ") if datetime_str else "Sem data"
-                post_url = element.get_attribute("href")
+                post_url = post.safeLocator(TWITTER_POST_HREF, "Twitter -> HREF Posts").get_attribute("href")
                 if post_url in processed_hrefs:
                     continue
                 processed_hrefs.add(post_url)          
                 post_metrics = convert_text_to_metrics(engagement_summary_str) if engagement_summary_str else {}
                 post_decription = post.safeLocator(TWITTER_DESCRIPTION, "Twitter -> Descrição do Post").inner_text() if post.locator(TWITTER_DESCRIPTION).count() > 0 else "Sem descrição"
                 post_decription = re.sub(r'\s+', ' ', post_decription).strip() if post_decription else "Sem descrição"
-                if post_datetime < start_date:
+
+                if type(post_datetime) != str and post_datetime < start_date:
                     continue_collecting = False
                     logger.info(f"Post de {post_datetime} está antes de {start_date}. Encerrando busca.")
                     break
-                if post_datetime >  end_date:
+                if type(post_datetime) != str and post_datetime >  end_date:
                     continue
                 logger.debug(f"Data do post: {post_datetime}")
                 logger.debug(f"Link encontrado: {post_url}")
@@ -110,5 +114,6 @@ class Twitter_Automation(PlayEssencial):
     def standard_procedure(self, dates: list[datetime])-> list[dict]:
         self.start_browser_user()
         data = self.collect_filtered_post_links(dates[0], dates[1])
+        input("Verifique os dados coletados e pressione Enter para continuar...")
         self.stop_browser()
         return data

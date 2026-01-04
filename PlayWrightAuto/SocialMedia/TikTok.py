@@ -60,7 +60,6 @@ class Tiktok_Automation(PlayEssencial):
 			logger.error("start index not found")
 			return {}
 		snippet = response.text[start_index:end_index]
-		logger.info("metrics object is :", snippet)
 		snippet = "{" + snippet + "}"
 		json_data = json.loads(snippet)
 		return json_data
@@ -159,7 +158,7 @@ class Tiktok_Automation(PlayEssencial):
 		result_info = {}
 		if not self.page:
 			raise Exception("Browser or page not initialized. Call start_browser() first.")
-		self.page.goto(self.current_url, timeout=30000)
+		self.page.goto(self.current_url, timeout=300000)
 		input("VERIFY IF THE PAGE HAS A PROBLEM OF CAPTCHA OR ERROR. THEN, PRESS ENTER TO CONTINUE")
 		self.page.wait_for_load_state("domcontentloaded",timeout=30000)
 		feed = self.page.safeLocator(TIKTOK_FEED_CONTAINER, "Container de Feed do TikTok")

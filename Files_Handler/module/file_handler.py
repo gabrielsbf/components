@@ -94,6 +94,7 @@ class Files_Handling():
 		try:
 			data = self.read_file(filename, folder)
 		except:
+			print("Arquivo não encontrado. Criando um novo...")
 			data = []
 		data = data + input
 		self.write_file(data, filename, folder)

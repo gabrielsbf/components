@@ -35,7 +35,7 @@ TWITTER_FEED_POST = '//article[@role="article"]'
 TWITTER_METRICS = '//div[@class="css-175oi2r r-1kbdv8c r-18u37iz r-1wtj0ep r-1ye8kvj r-1s2bzr4"]'
 """Seletor para as métricas de engajamento do post"""
 
-TWITTER_POST_HREF = 'a:has(time)'
+TWITTER_POST_HREF = '//a[@class="css-146c3p1 r-bcqeeo r-1ttztb7 r-qvutc0 r-37j5jr r-a023e6 r-rjixqe r-16dba41 r-xoduu5 r-1q142lx r-1w6e6rj r-9aw3ui r-3s2u2q r-1loqt21"]'
 """Seletor para o link do post (contém a tag <time>)"""
 
 TWITTER_DESCRIPTION = '//div[@data-testid="tweetText"]'
@@ -45,6 +45,7 @@ TWITTER_DESCRIPTION = '//div[@data-testid="tweetText"]'
 TIKTOK_FEED_CONTAINER = '//div[@id="main-content-others_homepage"]'
 """Seletor para o contêiner principal do feed"""
 
-TIKTOK_FEED_POST = '//div[@class="css-16cwaxc-5e6d46e3--DivContainer-5e6d46e3--StyledDivContainerV2 eip9vuq0"]'
+TIKTOK_FEED_POST = '//div[@class="css-11p5e9y-5e6d46e3--DivItemContainerV2 e7uspnp7"]'
 """Seletor para cada post individual no feed"""
 
+# //div[@data-e2e="user-post-item-list"]

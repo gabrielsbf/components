@@ -41,7 +41,7 @@ class Threads_Automation(PlayEssencial):
         filtered_posts = []
         while last_date >= since:
             logger.info("Scrolling to load more posts...")
-            self.page.mouse.wheel(0, 1000)
+            self.page.mouse.wheel(0, 2000)
             self.page.wait_for_timeout(500)
             posts = feed.safeLocator(THREADS_FEED_POST, "Posts Individuais -> De forma geral")
             count = posts.count()
