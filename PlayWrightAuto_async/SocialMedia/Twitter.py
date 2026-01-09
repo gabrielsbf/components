@@ -73,8 +73,11 @@ class Twitter_Automation(PlayEssencial):
                     return None
 
                 time_el = element.locator("time")
+                print("TIME EL COUNT IS: ", time_el)
                 datetime_str = await time_el.get_attribute("datetime") if await time_el.count() > 0 else None
+                print("DATETIME STR IS: ", datetime_str)
                 post_datetime = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%fZ") if datetime_str else None
+                print("POST DATETIME IS: ", post_datetime)
 
                 if not post_datetime:
                     return None
@@ -102,7 +105,7 @@ class Twitter_Automation(PlayEssencial):
                 return {
                     f"https://www.x.com{post_url}": {
                         "description": post_description,
-                        "date_create": post_datetime,
+                        "date_created": post_datetime,
                         "comments": post_metrics.get("respostas", 0),
                         "shares": post_metrics.get("reposts", 0),
                         "likes": post_metrics.get("curtidas", 0),
