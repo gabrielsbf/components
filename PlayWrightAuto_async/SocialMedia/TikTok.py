@@ -78,7 +78,8 @@ class Tiktok_Automation(PlayEssencial):
         end_index = html[start_index:].find(",") + start_index
 
         block = html[start_index:end_index]
-        timestamp = int(block.replace('"', '').removeprefix("createTime:"))
+        cleaned_block = block.replace('"', '').removeprefix("createTime:")
+        timestamp = int(cleaned_block) if cleaned_block.isdigit() else 0
 
         processed_date = datetime.fromtimestamp(timestamp)
         logger.info(f"Video date: {processed_date}")

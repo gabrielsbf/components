@@ -14,8 +14,8 @@ class Threads_Automation(PlayEssencial):
         self.current_url = f"https://www.threads.net/@{self.account}"
         
     async def get_href(self, since: str | datetime, until: str | datetime) -> list[dict]:
-
         def convert_text_to_metrics(metrics_text: list) -> dict:
+            
             return {
                 'Curtidas': metrics_text[0] if metrics_text and metrics_text[0] else 0,
                 'Comentários': metrics_text[1] if len(metrics_text) > 1 else 0,
@@ -28,7 +28,7 @@ class Threads_Automation(PlayEssencial):
 
         await self.page.goto(self.current_url, timeout=50000)
         await self.page.wait_for_load_state('domcontentloaded')
-        await self.page.wait_for_timeout(5000)
+        await self.page.wait_for_timeout(3000)
 
         locs = load_locators()
         await self.safe_locator("THREADS_FEED", "Feed dos Posts - Geral")
@@ -37,83 +37,74 @@ class Threads_Automation(PlayEssencial):
         since = since if isinstance(since, datetime) else datetime.strptime(since, "%d/%m/%Y")
         until = until if isinstance(until, datetime) else datetime.strptime(until, "%d/%m/%Y").replace(hour=23, minute=59, second=59)
 
+        collected: dict[str, dict] = {} 
         last_date = datetime.now()
-        filtered_posts = []
 
-        while last_date >= since:
-            await self.page.mouse.wheel(0, 1000)
-            await self.page.wait_for_timeout(500)
+        last_seen_count = 0
+        stagnant_rounds = 0
 
+        while last_date >= since and stagnant_rounds < 6:
             await self.safe_locator("THREADS_FEED_POST", "Posts Individuais")
             posts = feed.locator(locs["THREADS_FEED_POST"])
-
             count = await posts.count()
-            last_post = posts.nth(count - 1)
-            access_date = last_post.locator('//time')
 
-            last_datetime_str = await access_date.get_attribute("datetime")
+            if count == last_seen_count:
+                stagnant_rounds += 1
+            else:
+                stagnant_rounds = 0
+                last_seen_count = count
 
-            if last_datetime_str:
-                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
+            for i in range(count):
+                post = posts.nth(i)
 
-                if last_date < since:
-                    break
+                href = await post.locator(locs["THREADS_POST_HREF"]).get_attribute("href")
+                if not href:
+                    continue
+                full_link = f"https://www.threads.net{href}"
+                if full_link in collected:
+                    continue
 
+                dt_str = await post.locator("//time").get_attribute("datetime")
+                if not dt_str:
+                    continue
+                post_date = datetime.strptime(dt_str, "%Y-%m-%dT%H:%M:%S.000Z")
 
-        posts = feed.locator(locs["THREADS_FEED_POST"]) 
-        count = await posts.count()
+                if post_date < since:
+                    pass
 
-        sem = asyncio.Semaphore(5)
-
-        async def process_post(post):
-            async with sem:
-                await self.safe_locator("THREADS_METRICS", "Métricas")
-                await self.safe_locator("THREADS_POST_HREF", "Link")
-                await self.safe_locator("THREADS_DESCRIPTION", "Descrição")
-
-                metrics_text = await post.locator(locs["THREADS_METRICS"]).all_inner_texts()
-
-                href_locator = post.locator(locs["THREADS_POST_HREF"])
-                href = await href_locator.get_attribute("href")
-
-                description_locator = post.locator(locs["THREADS_DESCRIPTION"])
-                description = (
-                    await description_locator.text_content()
-                    if await description_locator.count() > 0
-                    else "Sem descrição"
-                )
-
-                metrics = convert_text_to_metrics(metrics_text)
-
-                last_datetime_str = await post.locator("//time").get_attribute("datetime")
-                if not last_datetime_str:
-                    return None
-
-                post_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-                date = post_date.strftime("%d/%m/%Y %H:%M:%S")
-            
-                
                 if since <= post_date <= until:
-                    return {
-                    'date_created': date,
-                    'description': description,
-                    'link_url': f"https://www.threads.net{href}",
-                    'visualizations': metrics.get("Visualizações", 0),
-                    'likes': metrics.get("Curtidas", 0),
-                    'comments': metrics.get("Comentários", 0),
-                    'reposts': metrics.get("Repostados", 0),
-                    'shares': metrics.get("Compartilhamentos", 0),
+                    metrics_text = await post.locator(locs["THREADS_METRICS"]).all_inner_texts()
+
+                    description_locator = post.locator(locs["THREADS_DESCRIPTION"])
+                    description = (
+                        await description_locator.text_content()
+                        if await description_locator.count() > 0
+                        else "Sem descrição"
+                    )
+
+                    metrics = convert_text_to_metrics(metrics_text)
+                    collected[full_link] = {
+                        "date_created": post_date.strftime("%d/%m/%Y %H:%M:%S"),
+                        "description": description,
+                        "link_url": full_link,
+                        "visualizations": metrics.get("Visualizações", 0),
+                        "likes": metrics.get("Curtidas", 0),
+                        "comments": metrics.get("Comentários", 0),
+                        "reposts": metrics.get("Repostados", 0),
+                        "shares": metrics.get("Compartilhamentos", 0),
                     }
 
-                return None
+            if count > 0:
+                last_post = posts.nth(count - 1)
+                last_dt = await last_post.locator("//time").get_attribute("datetime")
+                if last_dt:
+                    last_date = datetime.strptime(last_dt, "%Y-%m-%dT%H:%M:%S.000Z")
 
-        tasks = [process_post(posts.nth(i)) for i in range(count)]
+            await self.page.mouse.wheel(0, 1200)
+            await self.page.wait_for_timeout(800)
 
-        results = await asyncio.gather(*tasks)
+        return list(collected.values())
 
-        filtered_posts = [r for r in results if r]
-
-        return filtered_posts
 
     async def standard_procedure(self, dates: list[datetime]) -> dict:
             data = await self.get_href(dates[0], dates[1])
