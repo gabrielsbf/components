@@ -78,14 +78,16 @@ class Tiktok_Automation(PlayEssencial):
         end_index = html[start_index:].find(",") + start_index
 
         block = html[start_index:end_index]
-        timestamp = int(block.replace('"', '').removeprefix("createTime:"))
-
-        processed_date = datetime.fromtimestamp(timestamp)
+        timestamp_str = block.replace('"', '').removeprefix("createTime:")
+        logger.info(f"createTime: {timestamp_str}")
+        timestamp = int(timestamp_str) if timestamp_str.isdigit() else "notFound"
+        processed_date = datetime.fromtimestamp(timestamp) if timestamp != "notFound" else "notFound"
         logger.info(f"Video date: {processed_date}")
-
-        if processed_date < start_date:
+        if processed_date == "notFound":
+            result_info[self.current_url]["date_created"] = "notFound"
+        elif processed_date < start_date:
             return 0
-        if processed_date > end_date:
+        elif processed_date > end_date:
             return 1
 
         response_data = await self.extract_text_between(html, '"statsV2":', ',"warnInfo"')
