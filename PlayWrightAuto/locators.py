@@ -26,7 +26,7 @@ YOUTUBE_VIDEO_CONTAINER = '//div[@class="style-scope ytd-rich-grid-renderer"]//a
 
 
 # Locators específicos para o Twitter (Meta)
-TWITTER_FEED_CONTAINER = '//section[@class="css-175oi2r"]'
+TWITTER_FEED_CONTAINER = '//div[@aria-label="Timeline: Prefeitura de Niterói’s posts"]'
 """Seletor para o contêiner principal do feed"""
 
 TWITTER_FEED_POST = '//article[@role="article"]'

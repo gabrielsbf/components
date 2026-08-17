@@ -17,7 +17,7 @@ def save_locators(data):
     "THREADS_FEED": "//div[@aria-label=\"Corpo da coluna\"]",
     "THREADS_FEED_POST": "//div[@class=\"x1a2a7pz x1n2onr6\"]",
     "YOUTUBE_VIDEO_CONTAINER": "//div[@class=\"style-scope ytd-rich-grid-renderer\"]//a[@id=\"video-title-link\"]",
-    "TWITTER_FEED_CONTAINER": "//section[@class=\"css-175oi2r\"]",
+    "TWITTER_FEED_CONTAINER": '//div[@aria-label="Timeline: Prefeitura de Niterói’s posts"]',
     "TWITTER_FEED_POST": "//article[@role=\"article\"]",
     "TWITTER_METRICS": "//div[@class=\"css-175oi2r r-1kbdv8c r-18u37iz r-1wtj0ep r-1ye8kvj r-1s2bzr4\"]",
     "TWITTER_POST_HREF": "a:has(time)",

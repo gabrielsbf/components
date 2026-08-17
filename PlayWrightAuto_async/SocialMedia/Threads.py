@@ -40,31 +40,6 @@ class Threads_Automation(PlayEssencial):
         last_date = datetime.now()
         filtered_posts = []
 
-        while last_date >= since:
-            await self.page.mouse.wheel(0, 1000)
-            await self.page.wait_for_timeout(500)
-
-            await self.safe_locator("THREADS_FEED_POST", "Posts Individuais")
-            posts = feed.locator(locs["THREADS_FEED_POST"])
-
-            count = await posts.count()
-            last_post = posts.nth(count - 1)
-            access_date = last_post.locator('//time')
-
-            last_datetime_str = await access_date.get_attribute("datetime")
-
-            if last_datetime_str:
-                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
-
-                if last_date < since:
-                    break
-
-
-        posts = feed.locator(locs["THREADS_FEED_POST"]) 
-        count = await posts.count()
-
-        sem = asyncio.Semaphore(5)
-
         async def process_post(post):
             async with sem:
                 await self.safe_locator("THREADS_METRICS", "Métricas")
@@ -107,11 +82,37 @@ class Threads_Automation(PlayEssencial):
 
                 return None
 
-        tasks = [process_post(posts.nth(i)) for i in range(count)]
+        filtered_posts = []
+        links = []
+        while last_date >= since:
+            await self.page.mouse.wheel(0, 1000)
+            await self.page.wait_for_timeout(500)
 
-        results = await asyncio.gather(*tasks)
+            await self.safe_locator("THREADS_FEED_POST", "Posts Individuais")
+            posts = feed.locator(locs["THREADS_FEED_POST"])
 
-        filtered_posts = [r for r in results if r]
+            count = await posts.count()
+            last_post = posts.nth(count - 1)
+            access_date = last_post.locator('//time')
+
+            last_datetime_str = await access_date.get_attribute("datetime")
+            sem = asyncio.Semaphore(5)
+            tasks = [process_post(posts.nth(i)) for i in range(count)]
+            results = await asyncio.gather(*tasks)
+            filtered_posts.extend([r for r in results if r is not None and r["link_url"] not in links ])
+            links.extend([r['link_url'] for r in results if r])
+            if last_datetime_str:
+                last_date = datetime.strptime(last_datetime_str, "%Y-%m-%dT%H:%M:%S.000Z")
+
+                if last_date < since:
+                    break
+        
+        # posts = feed.locator(locs["THREADS_FEED_POST"]) 
+        # count = await posts.count()
+
+        
+
+        
 
         return filtered_posts
 

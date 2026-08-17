@@ -70,7 +70,7 @@ class Social_Manager(Date_Utils):
 		----
 		
 		"""
-		url_test = "https://graph.facebook.com/v19.0/me?fields=id%2Cname&access_token="
+		url_test = "https://graph.facebook.com/v24.0/me?fields=id%2Cname&access_token="
 		token = "" if self.cred.get("token_30days") == None else self.cred["token_30days"]
 		response = self.fetch_data(url_test + token)
 		while response.get("error") != None:
