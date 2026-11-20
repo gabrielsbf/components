@@ -131,7 +131,7 @@ class Tiktok_Automation(PlayEssencial):
         all_videos = []
         counter = 0
 
-        sem = asyncio.Semaphore(5)
+        sem = asyncio.Semaphore(2)
 
         async with aiohttp.ClientSession(headers=self.headers) as session:
 
@@ -155,7 +155,7 @@ class Tiktok_Automation(PlayEssencial):
                     if result not in (0, 1):
                         all_videos.append(result)
 
-                    if result == 0 and counter > 3:
+                    if (result == 0 and counter > 3):
                         return "STOP"
                     counter += 1
 
